@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="Beacon_Blue_01.png" width="403" height="174" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="1" name="Beacon_Blue_02.png" width="893" height="89" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="2" name="Beacon_Red_01.png" width="403" height="174" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="3" name="Beacon_Red_02.png" width="893" height="89" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="4" name="Light_01.png" width="274" height="128" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="5" name="Light_02.png" width="810" height="1257" pivot_x="0.5" pivot_y="0"/>
+        <file id="6" name="Nitro.png" width="132" height="407" pivot_x="0.5" pivot_y="1"/>
+        <file id="7" name="Smoke_02.png" width="493" height="442" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="8" name="Stop_Light.png" width="232" height="90" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="9" name="Tire_Track_01.png" width="113" height="677" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="10" name="Turn_Light.png" width="192" height="61" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="entity_000">
+        <animation id="0" name="Smoke" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="200">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                </key>
+                <key id="2" time="300">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                </key>
+                <key id="3" time="400">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="3" z_index="2"/>
+                </key>
+                <key id="4" time="450">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="4" z_index="2"/>
+                </key>
+                <key id="5" time="500">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="4" z_index="2"/>
+                </key>
+                <key id="6" time="550">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="5" z_index="2"/>
+                </key>
+                <key id="7" time="600">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="5" z_index="2"/>
+                </key>
+                <key id="8" time="650">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="5" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Smoke_02">
+                <key id="0" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="2" time="300" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="3" time="400" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="4" time="500" spin="0">
+                    <object folder="0" file="7" x="150" y="-100" angle="0" scale_x="1.3"/>
+                </key>
+                <key id="5" time="600" spin="0">
+                    <object folder="0" file="7" x="200" y="-150" angle="0" scale_x="1.3" scale_y="1.5"/>
+                </key>
+                <key id="6" time="650" spin="0">
+                    <object folder="0" file="7" x="250" y="-200" angle="0" scale_x="2" scale_y="2" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="Smoke_02_000">
+                <key id="0" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="2" time="300" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="3" time="400" spin="0">
+                    <object folder="0" file="7" x="150" y="-100" angle="0" scale_x="1.3"/>
+                </key>
+                <key id="4" time="500" spin="0">
+                    <object folder="0" file="7" x="200" y="-150" angle="0" scale_x="1.5" scale_y="1.3"/>
+                </key>
+                <key id="5" time="550" spin="0">
+                    <object folder="0" file="7" x="250" y="-200" angle="0" scale_x="2" scale_y="2" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="Smoke_02_001">
+                <key id="0" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="7" angle="0" a="0"/>
+                </key>
+                <key id="2" time="300" spin="0">
+                    <object folder="0" file="7" x="150" y="-100" angle="0" scale_x="1.3"/>
+                </key>
+                <key id="3" time="400" spin="0">
+                    <object folder="0" file="7" x="200" y="-150" angle="0" scale_x="1.3" scale_y="1.5"/>
+                </key>
+                <key id="4" time="450" spin="0">
+                    <object folder="0" file="7" x="250" y="-200" angle="0" scale_x="2" scale_y="2" a="0"/>
+                </key>
+                <key id="5" time="550" spin="0">
+                    <object folder="0" file="7" x="250" y="-200" angle="0" scale_x="2" scale_y="2" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="Police_Beacons_Blue" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="300">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="350">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="3" time="400">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="4" time="450">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="5" time="500">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+                <key id="6" time="700">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+                <key id="7" time="750">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                </key>
+                <key id="8" time="800">
+                    <object_ref id="0" timeline="0" key="7" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="6" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Beacon_Blue_01">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" angle="0" a="0"/>
+                </key>
+                <key id="1" time="300" spin="0">
+                    <object folder="0" file="0" angle="0" scale_x="0.7" scale_y="1.3" a="0"/>
+                </key>
+                <key id="2" time="350" spin="0">
+                    <object folder="0" file="0" angle="0" a="0.5"/>
+                </key>
+                <key id="3" time="400" spin="0">
+                    <object folder="0" file="0" angle="0" scale_x="1.5" scale_y="1.5"/>
+                </key>
+                <key id="4" time="450" spin="0">
+                    <object folder="0" file="0" angle="0" scale_x="1.2" scale_y="1.2"/>
+                </key>
+                <key id="5" time="700" spin="0">
+                    <object folder="0" file="0" angle="0" scale_x="1.2" scale_y="1.2"/>
+                </key>
+                <key id="6" time="750" spin="0">
+                    <object folder="0" file="0" angle="0" scale_x="1.5" scale_y="1.5"/>
+                </key>
+                <key id="7" time="800" spin="0">
+                    <object folder="0" file="0" angle="0" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="Beacon_Blue_02">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" angle="0" a="0"/>
+                </key>
+                <key id="1" time="300" spin="0">
+                    <object folder="0" file="1" angle="0" scale_x="0.5" a="0"/>
+                </key>
+                <key id="2" time="400" spin="0">
+                    <object folder="0" file="1" angle="0" scale_x="1.5"/>
+                </key>
+                <key id="3" time="450" spin="0">
+                    <object folder="0" file="1" angle="0" scale_x="2" scale_y="1.3"/>
+                </key>
+                <key id="4" time="500" spin="0">
+                    <object folder="0" file="1" angle="0" scale_x="1.5"/>
+                </key>
+                <key id="5" time="750" spin="0">
+                    <object folder="0" file="1" angle="0" scale_y="1.3"/>
+                </key>
+                <key id="6" time="800" spin="0">
+                    <object folder="0" file="1" angle="0" scale_y="0.5" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="2" name="Police_Beacons_Red" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="300">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="350">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="3" time="400">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="4" time="450">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="5" time="500">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+                <key id="6" time="700">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                </key>
+                <key id="7" time="750">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="6" z_index="1"/>
+                </key>
+                <key id="8" time="800">
+                    <object_ref id="0" timeline="0" key="7" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="7" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Beacon_Red_01">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" angle="0" a="0"/>
+                </key>
+                <key id="1" time="300" spin="0">
+                    <object folder="0" file="2" angle="0" scale_x="0.7" scale_y="1.3" a="0"/>
+                </key>
+                <key id="2" time="350" spin="0">
+                    <object folder="0" file="2" angle="0" a="0.5"/>
+                </key>
+                <key id="3" time="400" spin="0">
+                    <object folder="0" file="2" angle="0" scale_x="1.5" scale_y="1.5"/>
+                </key>
+                <key id="4" time="450" spin="0">
+                    <object folder="0" file="2" angle="0" scale_x="1.2" scale_y="1.2"/>
+                </key>
+                <key id="5" time="700" spin="0">
+                    <object folder="0" file="2" angle="0" scale_x="1.2" scale_y="1.2"/>
+                </key>
+                <key id="6" time="750" spin="0">
+                    <object folder="0" file="2" angle="0" scale_x="1.5" scale_y="1.5"/>
+                </key>
+                <key id="7" time="800" spin="0">
+                    <object folder="0" file="2" angle="0" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="Beacon_Red_02">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" angle="0" a="0"/>
+                </key>
+                <key id="1" time="300" spin="0">
+                    <object folder="0" file="3" angle="0" scale_x="0.5" a="0"/>
+                </key>
+                <key id="2" time="400" spin="0">
+                    <object folder="0" file="3" angle="0" scale_x="1.5"/>
+                </key>
+                <key id="3" time="450" spin="0">
+                    <object folder="0" file="3" angle="0" scale_x="2" scale_y="1.3"/>
+                </key>
+                <key id="4" time="500" spin="0">
+                    <object folder="0" file="3" angle="0" scale_x="1.5"/>
+                </key>
+                <key id="5" time="700" spin="0">
+                    <object folder="0" file="3" angle="0" scale_x="1.5"/>
+                </key>
+                <key id="6" time="750" spin="0">
+                    <object folder="0" file="3" angle="0" scale_y="1.3"/>
+                </key>
+                <key id="7" time="800" spin="0">
+                    <object folder="0" file="3" angle="0" scale_y="0.5" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="3" name="Stop_Signals" length="500" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="100">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="150">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="200">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="250">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="300">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Stop_Light">
+                <key id="0" spin="0">
+                    <object folder="0" file="8" angle="0" scale_y="0.5" a="0"/>
+                </key>
+                <key id="1" time="100" spin="0">
+                    <object folder="0" file="8" angle="0" scale_x="0.5" scale_y="1.5"/>
+                </key>
+                <key id="2" time="150" spin="0">
+                    <object folder="0" file="8" angle="0" scale_x="1.7" scale_y="0.8"/>
+                </key>
+                <key id="3" time="200" spin="0">
+                    <object folder="0" file="8" angle="0"/>
+                </key>
+                <key id="4" time="250" spin="0">
+                    <object folder="0" file="8" angle="0" scale_x="0.8" scale_y="0.8"/>
+                </key>
+                <key id="5" time="300" spin="0">
+                    <object folder="0" file="8" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="4" name="Turn_Signals" length="500" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="100">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="150">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="200">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="350">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="400">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Turn_Light">
+                <key id="0" spin="0">
+                    <object folder="0" file="10" angle="0" scale_x="0.5" scale_y="1.5" a="0"/>
+                </key>
+                <key id="1" time="100" spin="0">
+                    <object folder="0" file="10" angle="0" scale_y="1.5"/>
+                </key>
+                <key id="2" time="150" spin="0">
+                    <object folder="0" file="10" angle="0" scale_x="2" scale_y="0.7"/>
+                </key>
+                <key id="3" time="200" spin="0">
+                    <object folder="0" file="10" angle="0" scale_x="0.8" scale_y="1.2"/>
+                </key>
+                <key id="4" time="350" spin="0">
+                    <object folder="0" file="10" angle="0" scale_x="1.3"/>
+                </key>
+                <key id="5" time="400" spin="0">
+                    <object folder="0" file="10" angle="0" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="5" name="Nitro_ON" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="200">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="300">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="350">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="400">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="450">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+                <key id="6" time="500">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                </key>
+                <key id="7" time="550">
+                    <object_ref id="0" timeline="0" key="7" z_index="0"/>
+                </key>
+                <key id="8" time="600">
+                    <object_ref id="0" timeline="0" key="8" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Nitro">
+                <key id="0" spin="0">
+                    <object folder="0" file="6" angle="0" scale_y="0.2" a="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="6" angle="0" scale_y="0.2" a="0"/>
+                </key>
+                <key id="2" time="300" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="2" scale_y="0.3"/>
+                </key>
+                <key id="3" time="350" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="2.3" a="0.928571"/>
+                </key>
+                <key id="4" time="400" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.5" scale_y="2" a="0.928571"/>
+                </key>
+                <key id="5" time="450" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.8" scale_y="0.8" a="0.928571"/>
+                </key>
+                <key id="6" time="500" spin="0">
+                    <object folder="0" file="6" angle="0" scale_y="1.5" a="0.928571"/>
+                </key>
+                <key id="7" time="550" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.1" scale_y="0.9" a="0.928571"/>
+                </key>
+                <key id="8" time="600" spin="0">
+                    <object folder="0" file="6" angle="0" a="0.928571"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="6" name="Nitro" length="700" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="35">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="70">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="105">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="140">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="175">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+                <key id="6" time="210">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                </key>
+                <key id="7" time="243">
+                    <object_ref id="0" timeline="0" key="7" z_index="0"/>
+                </key>
+                <key id="8" time="280">
+                    <object_ref id="0" timeline="0" key="8" z_index="0"/>
+                </key>
+                <key id="9" time="315">
+                    <object_ref id="0" timeline="0" key="9" z_index="0"/>
+                </key>
+                <key id="10" time="350">
+                    <object_ref id="0" timeline="0" key="10" z_index="0"/>
+                </key>
+                <key id="11" time="385">
+                    <object_ref id="0" timeline="0" key="11" z_index="0"/>
+                </key>
+                <key id="12" time="420">
+                    <object_ref id="0" timeline="0" key="12" z_index="0"/>
+                </key>
+                <key id="13" time="453">
+                    <object_ref id="0" timeline="0" key="13" z_index="0"/>
+                </key>
+                <key id="14" time="488">
+                    <object_ref id="0" timeline="0" key="14" z_index="0"/>
+                </key>
+                <key id="15" time="525">
+                    <object_ref id="0" timeline="0" key="15" z_index="0"/>
+                </key>
+                <key id="16" time="560">
+                    <object_ref id="0" timeline="0" key="16" z_index="0"/>
+                </key>
+                <key id="17" time="595">
+                    <object_ref id="0" timeline="0" key="17" z_index="0"/>
+                </key>
+                <key id="18" time="630">
+                    <object_ref id="0" timeline="0" key="18" z_index="0"/>
+                </key>
+                <key id="19" time="665">
+                    <object_ref id="0" timeline="0" key="19" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Nitro">
+                <key id="0" spin="0">
+                    <object folder="0" file="6" angle="0" a="0.928571"/>
+                </key>
+                <key id="1" time="35" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.125" scale_y="1.525" a="0.928571"/>
+                </key>
+                <key id="2" time="70" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.25" scale_y="1.45" a="0.928571"/>
+                </key>
+                <key id="3" time="105" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.875" scale_y="1.275" a="0.928571"/>
+                </key>
+                <key id="4" time="140" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.9" scale_y="1.5" a="0.928571"/>
+                </key>
+                <key id="5" time="175" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.275" scale_y="1.125" a="0.928571"/>
+                </key>
+                <key id="6" time="210" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.65" scale_y="1.15" a="0.928571"/>
+                </key>
+                <key id="7" time="243" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.425" scale_y="1.375" a="0.928571"/>
+                </key>
+                <key id="8" time="280" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.2" scale_y="1.2" a="0.928571"/>
+                </key>
+                <key id="9" time="315" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.775" scale_y="1.575" a="0.928571"/>
+                </key>
+                <key id="10" time="350" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.95" scale_y="1.55" a="0.928571"/>
+                </key>
+                <key id="11" time="385" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.925" scale_y="1.325" a="0.928571"/>
+                </key>
+                <key id="12" time="420" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.3" scale_y="1.5" a="0.928571"/>
+                </key>
+                <key id="13" time="453" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.1" scale_y="1.35" a="0.928571"/>
+                </key>
+                <key id="14" time="488" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.5" scale_y="0.8" a="0.928571"/>
+                </key>
+                <key id="15" time="525" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.8" scale_y="1.25" a="0.928571"/>
+                </key>
+                <key id="16" time="560" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.9" scale_y="1.3" a="0.928571"/>
+                </key>
+                <key id="17" time="595" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.775" scale_y="1.225" a="0.928571"/>
+                </key>
+                <key id="18" time="630" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.05" scale_y="1.55" a="0.928571"/>
+                </key>
+                <key id="19" time="665" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.325" scale_y="1.075" a="0.928571"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="7" name="Nitro_Low" length="500" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="50">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="100">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="150">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="200">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="250">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+                <key id="6" time="300">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                </key>
+                <key id="7" time="349">
+                    <object_ref id="0" timeline="0" key="7" z_index="0"/>
+                </key>
+                <key id="8" time="400">
+                    <object_ref id="0" timeline="0" key="8" z_index="0"/>
+                </key>
+                <key id="9" time="450">
+                    <object_ref id="0" timeline="0" key="9" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Nitro">
+                <key id="0" spin="0">
+                    <object folder="0" file="6" angle="0" scale_y="0.5" a="0.928571"/>
+                </key>
+                <key id="1" time="50" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.25" scale_y="0.95" a="0.928571"/>
+                </key>
+                <key id="2" time="100" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.9" a="0.928571"/>
+                </key>
+                <key id="3" time="150" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.65" scale_y="0.65" a="0.928571"/>
+                </key>
+                <key id="4" time="200" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.2" scale_y="0.7" a="0.928571"/>
+                </key>
+                <key id="5" time="250" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.95" scale_y="1.05" a="0.928571"/>
+                </key>
+                <key id="6" time="300" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.3" a="0.928571"/>
+                </key>
+                <key id="7" time="349" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.5" scale_y="0.3" a="0.928571"/>
+                </key>
+                <key id="8" time="400" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.9" scale_y="0.8" a="0.928571"/>
+                </key>
+                <key id="9" time="450" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.05" scale_y="1.05" a="0.928571"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="8" name="Nitro_OFF" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="50">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="100">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="150">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="200">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="250">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+                <key id="6" time="300">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                </key>
+                <key id="7" time="400">
+                    <object_ref id="0" timeline="0" key="7" z_index="0"/>
+                </key>
+                <key id="8" time="500">
+                    <object_ref id="0" timeline="0" key="8" z_index="0"/>
+                </key>
+                <key id="9" time="600">
+                    <object_ref id="0" timeline="0" key="9" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Nitro">
+                <key id="0" spin="0">
+                    <object folder="0" file="6" angle="0" a="0.928571"/>
+                </key>
+                <key id="1" time="50" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.45" scale_y="1.2" a="0.928571"/>
+                </key>
+                <key id="2" time="100" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.3" scale_y="0.8" a="0.928571"/>
+                </key>
+                <key id="3" time="150" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.9" scale_y="0.7" a="0.928571"/>
+                </key>
+                <key id="4" time="200" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.1" scale_y="1.2" a="0.928571"/>
+                </key>
+                <key id="5" time="250" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.7" scale_y="1.3" a="0.928571"/>
+                </key>
+                <key id="6" time="300" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="0.9" scale_y="0.8" a="0.928571"/>
+                </key>
+                <key id="7" time="400" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.4" scale_y="0.8" a="0.928571"/>
+                </key>
+                <key id="8" time="500" spin="0">
+                    <object folder="0" file="6" y="-30" angle="0" scale_x="0.6" scale_y="0.5" a="0.928571"/>
+                </key>
+                <key id="9" time="600" spin="0">
+                    <object folder="0" file="6" angle="0" scale_x="1.4" scale_y="0.2" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="9" name="Lights_ON" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="250">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="300">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="3" time="350">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="4" time="400">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Light_01">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2.5" scale_y="0.8" a="0"/>
+                </key>
+                <key id="1" time="250" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2.5" scale_y="0.8" a="0"/>
+                </key>
+                <key id="2" time="300" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2.5"/>
+                </key>
+                <key id="3" time="350" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="3"/>
+                </key>
+                <key id="4" time="400" spin="0">
+                    <object folder="0" file="4" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="Light_02">
+                <key id="0" spin="0">
+                    <object folder="0" file="5" angle="0" scale_x="0.5" a="0"/>
+                </key>
+                <key id="1" time="250" spin="0">
+                    <object folder="0" file="5" angle="0" scale_x="0.5" a="0"/>
+                </key>
+                <key id="2" time="300" spin="0">
+                    <object folder="0" file="5" angle="0" scale_x="1.2" scale_y="1.1"/>
+                </key>
+                <key id="3" time="350" spin="0">
+                    <object folder="0" file="5" angle="0"/>
+                </key>
+                <key id="4" time="400" spin="0">
+                    <object folder="0" file="5" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="10" name="Lights_OFF" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="200">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="250">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="3" time="300">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="4" time="350">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Light_01">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" angle="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="4" angle="0"/>
+                </key>
+                <key id="2" time="250" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="1.2" scale_y="1.5"/>
+                </key>
+                <key id="3" time="300" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2" scale_y="0.2"/>
+                </key>
+                <key id="4" time="350" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2" scale_y="0.3" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="Light_02">
+                <key id="0" spin="0">
+                    <object folder="0" file="5" angle="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="5" angle="0"/>
+                </key>
+                <key id="2" time="250" spin="0">
+                    <object folder="0" file="5" angle="0" scale_y="0.9"/>
+                </key>
+                <key id="3" time="300" spin="0">
+                    <object folder="0" file="5" angle="0" scale_x="0.7" scale_y="0.7" a="0"/>
+                </key>
+                <key id="4" time="350" spin="0">
+                    <object folder="0" file="5" angle="0" scale_x="0.7" scale_y="0.7" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>
