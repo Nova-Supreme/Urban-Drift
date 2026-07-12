@@ -3,6 +3,7 @@
 #include <raylib.h>
 
 typedef struct vehicle {
+    int id;
     float maxspeed;
     float acceleration;
     float deceleration;
