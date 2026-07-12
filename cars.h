@@ -2,11 +2,10 @@
 #define CAR_H //if no then it marks CAR_H as defined and tells it to read the contents of this file
 #include <raylib.h>
 
-typedef struct vehicle {
+typedef struct vehicle{
     int id;
     float maxspeed;
     float acceleration;
-    float deceleration;
     float friction;
     int maxpassengers;
     float width;
@@ -14,5 +13,14 @@ typedef struct vehicle {
 } vehicle;
 
 vehicle GetVehiclePreset(int choice); //function prototype
+
+typedef struct passenger{
+    Vector2 position;
+    Vector2 destination;
+    bool isspawned;
+    bool ispickedup;
+    float interactionradius;
+} Passenger;
+
 
 #endif
