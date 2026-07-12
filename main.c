@@ -8,17 +8,34 @@ int main()
     Vector2 pos={50.0f,50.0f};
     float rotation=0.0f;
 
-
     float speed=0.0f;
-    vehicle playervehicle=GetVehiclePreset(4);
+    vehicle playervehicle=GetVehiclePreset(1);
     
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     int gamewidth=1024;
     int gameheight=768;
     InitWindow(gamewidth,gameheight,"Urban Drift");
     RenderTexture2D target=LoadRenderTexture(gamewidth,gameheight);
-    SetTextureFilter(target.texture,TEXTURE_FILTER_BILINEAR); // no understand
+    SetTextureFilter(target.texture,TEXTURE_FILTER_BILINEAR); //when zooming in, pixels are blended smoothly together
     SetTargetFPS(144);
+
+    Texture2D cartextures[4];
+    cartextures[0]=LoadTexture("assets/rickshaw.png");
+    cartextures[1]=LoadTexture("assets/cng.png");
+    cartextures[2]=LoadTexture("assets/auto.png");
+    cartextures[3]=LoadTexture("assets/car.png");
+    Texture2D currenttexture=cartextures[playervehicle.id-1];
+
+    //Texture2D mapbackground=LoadTexture("assets/samplebg2.png");
+
+    float worldwidth=1024.0f;
+    float worldheight=768.0f;
+
+    Camera2D camera={0};
+    camera.target=pos;
+    camera.offset=(Vector2){(float)gamewidth/2.0f,(float)gameheight/2.0f}; 
+    camera.rotation=0.0f;
+    camera.zoom=1.0f;
 
     //SetExitKey(KEY_NULL);
     
@@ -39,28 +56,43 @@ int main()
         float moveY=-cosf(rotation*DEG2RAD)*speed;
         float nextX=pos.x+moveX;
         float leftwall=playervehicle.width/2.0f;
-        float rightwall=gamewidth-playervehicle.width/2.0f; 
+        float rightwall=worldwidth-playervehicle.width/2.0f; 
         if(nextX<leftwall) pos.x=leftwall;
         else if(nextX>rightwall) pos.x=rightwall;
         else pos.x=nextX;
-        float topwall=playervehicle.height/2.0f;
-        float bottomwall=gameheight-playervehicle.height/2.0f; 
         float nextY=pos.y+moveY;
+        float topwall=playervehicle.height/2.0f;
+        float bottomwall=worldheight-playervehicle.height/2.0f; 
         if(nextY<topwall) pos.y=topwall;
         else if(nextY>bottomwall) pos.y=bottomwall;
         else pos.y=nextY;
 
+        if(pos.x<(float)gamewidth/2.0f) camera.target.x=(float)gamewidth/2.0f;
+        else if(pos.x>worldwidth-((float)gamewidth/2.0f)) camera.target.x=worldwidth-((float)gamewidth/2.0f);
+        else camera.target.x = pos.x;
+        if(pos.y<(float)gameheight/2.0f) camera.target.y=(float)gameheight/2.0f;
+        else if(pos.y>worldheight-((float)gameheight/2.0f)) camera.target.y=worldheight-((float)gameheight/2.0f);
+        else camera.target.y = pos.y;
+
         // --- DRAWING TO CANVAS ---
         BeginTextureMode(target);
             ClearBackground(RAYWHITE);
-            DrawRectanglePro(
+            BeginMode2D(camera);
+
+            // Rectangle mapsource={0.0f,0.0f,(float)mapbackground.width,(float)mapbackground.height};
+            // Rectangle mapdest={0.0f,0.0f,worldwidth,worldheight};
+            // DrawTexturePro(mapbackground,mapsource,mapdest,(Vector2){0.0f,0.0f},0.0f,WHITE);
+
+            DrawTexturePro(
+                currenttexture,
+                (Rectangle){0.0f,0.0f,(float)currenttexture.width,(float)currenttexture.height},
                 (Rectangle){pos.x,pos.y,playervehicle.width,playervehicle.height},
-                (Vector2){playervehicle.width/2.0f,playervehicle.height/2.0f}, 
+                (Vector2){playervehicle.width/2.0f,playervehicle.height/2.0f},
                 rotation,
-                BLUE);
+                WHITE);
+                EndMode2D();
         EndTextureMode();
         
-        // --- SCALING CANVAS TO WINDOW (No distortion) ---
         BeginDrawing();
             ClearBackground(BLACK); //black fills the remaining space
             
@@ -77,12 +109,13 @@ int main()
             DrawTexturePro(
                 target.texture,
                 (Rectangle){0,0,(float)target.texture.width,(float)-target.texture.height},
-                (Rectangle){viewX,viewY,viewWidth,viewHeight}, // Centered and scaled evenly!
+                (Rectangle){viewX,viewY,viewWidth,viewHeight}, // centered and scaled evenly
                 (Vector2){0,0}, 
                 0.0f,
                 WHITE);
         EndDrawing();
     }
+    for(int i=0;i<4;i++) UnloadTexture(cartextures[i]);
     UnloadRenderTexture(target);
     CloseWindow();
 }
