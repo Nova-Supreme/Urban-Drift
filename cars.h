@@ -10,6 +10,7 @@ typedef struct vehicle{
     int maxpassengers;
     float width;
     float height;
+    float brakeforce;
 } vehicle;
 
 vehicle GetVehiclePreset(int choice); //function prototype
