@@ -132,64 +132,65 @@ int main()
                 if(IsKeyDown(KEY_A)) rotation-=0.5f;
                 rotation=fmodf(rotation,360.0f);
             }
-                if(IsKeyDown(KEY_SPACE) && speed!=0.0f){
-        //emergency brake - hard decel, overrides throttle/reverse input
-        if(speed>0.0f){
-            speed-=playervehicle.brakeforce;
-            if(speed<0.0f) speed=0.0f;
-        }
-        else if(speed<0.0f){
-            speed+=playervehicle.brakeforce;
-            if(speed>0.0f) speed=0.0f;
-    }
-}
-    else{
-        if(IsKeyDown(KEY_W) && speed<playervehicle.maxspeed && !IsKeyDown(KEY_S)) speed+=playervehicle.acceleration;
-        if(IsKeyDown(KEY_S) && speed>-playervehicle.maxspeed && !IsKeyDown(KEY_W)) speed-=playervehicle.acceleration;
-        if(IsKeyUp(KEY_W)&&IsKeyUp(KEY_S)&&speed!=0){
-            if(speed>0) speed-=playervehicle.friction;
-            if(speed<0) speed+=playervehicle.friction;
-            if (speed<0.01f&&speed>-0.01f) speed=0.0f;
-        }
-    }
-            
-            float moveX=sinf(rotation*DEG2RAD)*speed;
-            float moveY=-cosf(rotation*DEG2RAD)*speed;
-            float nextX=pos.x+moveX;
-            float leftwall=playervehicle.width/2.0f;
-            float rightwall=worldwidth-playervehicle.width/2.0f; 
-            if(nextX<leftwall) pos.x=leftwall;
-            else if(nextX>rightwall) pos.x=rightwall;
-            else pos.x=nextX;
-            float nextY=pos.y+moveY;
-            float topwall=playervehicle.height/2.0f;
-            float bottomwall=worldheight-playervehicle.height/2.0f; 
-            if(nextY<topwall) pos.y=topwall;
-            else if(nextY>bottomwall) pos.y=bottomwall;
-            else pos.y=nextY;
-
-            if(currentpassenger.isspawned) {
-                if(!currentpassenger.ispickedup){
-                    if(CheckCollisionCircles(pos,playervehicle.width/3.0f,currentpassenger.position,currentpassenger.interactionradius) && speed==0.0f){
-                        currentpassenger.ispickedup=true;
-                    }
+            if(IsKeyDown(KEY_SPACE) && speed!=0.0f){ //emergency brake
+                if(speed>0.0f){
+                    speed-=playervehicle.brakeforce;
+                    if(speed<0.0f) speed=0.0f;
                 }
-                else{
-                    if(CheckCollisionCircles(pos,playervehicle.width/3.0f,currentpassenger.destination,currentpassenger.interactionradius) && speed==0.0f){
-                        currentpassenger.ispickedup=false;
-                        currentpassenger.isspawned=false;
-                        money+=100;
-                    }
+                else if(speed<0.0f){
+                    speed+=playervehicle.brakeforce;
+                    if(speed>0.0f) speed=0.0f;
                 }
             }
-
-            if(pos.x<(float)gamewidth/2.0f) camera.target.x=(float)gamewidth/2.0f;
-            else if(pos.x>worldwidth-((float)gamewidth/2.0f)) camera.target.x=worldwidth-((float)gamewidth/2.0f);
-            else camera.target.x=pos.x;
-            if(pos.y<(float)gameheight/2.0f) camera.target.y=(float)gameheight/2.0f;
-            else if(pos.y>worldheight-((float)gameheight/2.0f)) camera.target.y=worldheight-((float)gameheight/2.0f);
-            else camera.target.y=pos.y;
+            else{
+                if(IsKeyDown(KEY_W) && speed<playervehicle.maxspeed && !IsKeyDown(KEY_S)) speed+=playervehicle.acceleration;
+                if(IsKeyDown(KEY_S) && speed>-playervehicle.maxspeed && !IsKeyDown(KEY_W)) speed-=playervehicle.acceleration;
+                if(IsKeyUp(KEY_W)&&IsKeyUp(KEY_S)&&speed!=0){
+                    if(speed>0) speed-=playervehicle.friction;
+                    if(speed<0) speed+=playervehicle.friction;
+                    if(speed<0.01f&&speed>-0.01f) speed=0.0f;
+                }
+            }
         }
+            
+        float moveX=sinf(rotation*DEG2RAD)*speed;
+        float moveY=-cosf(rotation*DEG2RAD)*speed;
+        float nextX=pos.x+moveX;
+        float leftwall=playervehicle.width/2.0f;
+        float rightwall=worldwidth-playervehicle.width/2.0f; 
+        if(nextX<leftwall) pos.x=leftwall;
+        else if(nextX>rightwall) pos.x=rightwall;
+        else pos.x=nextX;
+        float nextY=pos.y+moveY;
+        float topwall=playervehicle.height/2.0f;
+        float bottomwall=worldheight-playervehicle.height/2.0f; 
+        if(nextY<topwall) pos.y=topwall;
+        else if(nextY>bottomwall) pos.y=bottomwall;
+        else pos.y=nextY;
+
+
+        if(currentpassenger.isspawned) {
+            if(!currentpassenger.ispickedup){
+                if(CheckCollisionCircles(pos,playervehicle.width/3.0f,currentpassenger.position,currentpassenger.interactionradius) && speed==0.0f){
+                    currentpassenger.ispickedup=true;
+                }
+            }
+            else{
+                if(CheckCollisionCircles(pos,playervehicle.width/3.0f,currentpassenger.destination,currentpassenger.interactionradius) && speed==0.0f){
+                    currentpassenger.ispickedup=false;
+                    currentpassenger.isspawned=false;
+                    money+=100;
+                }
+            }
+        }
+
+        if(pos.x<(float)gamewidth/2.0f) camera.target.x=(float)gamewidth/2.0f;
+        else if(pos.x>worldwidth-((float)gamewidth/2.0f)) camera.target.x=worldwidth-((float)gamewidth/2.0f);
+        else camera.target.x=pos.x;
+        if(pos.y<(float)gameheight/2.0f) camera.target.y=(float)gameheight/2.0f;
+        else if(pos.y>worldheight-((float)gameheight/2.0f)) camera.target.y=worldheight-((float)gameheight/2.0f);
+        else camera.target.y=pos.y;
+    
 
         BeginTextureMode(target); //starts drawing on hidden canvas
             ClearBackground(RAYWHITE); //clears old frame and makes it white
