@@ -64,14 +64,27 @@ int main()
                 if(IsKeyDown(KEY_D)) rotation+=0.5f;
                 if(IsKeyDown(KEY_A)) rotation-=0.5f;
             }
-            if(IsKeyDown(KEY_W) && speed<playervehicle.maxspeed && !IsKeyDown(KEY_S)) speed+=playervehicle.acceleration;
-            if(IsKeyDown(KEY_S) && speed>-playervehicle.maxspeed && !IsKeyDown(KEY_W)) speed-=playervehicle.acceleration;
-            if(IsKeyUp(KEY_W)&&IsKeyUp(KEY_S)&&speed!=0){
-                if(speed>0) speed-=playervehicle.friction;
-                if(speed<0) speed+=playervehicle.friction;
-                if (speed<0.01f&&speed>-0.01f) speed=0.0f;
-            }
-
+                if(IsKeyDown(KEY_SPACE) && speed!=0.0f){
+        //emergency brake - hard decel, overrides throttle/reverse input
+        if(speed>0.0f){
+            speed-=playervehicle.brakeforce;
+            if(speed<0.0f) speed=0.0f;
+        }
+        else if(speed<0.0f){
+            speed+=playervehicle.brakeforce;
+            if(speed>0.0f) speed=0.0f;
+    }
+}
+    else{
+        if(IsKeyDown(KEY_W) && speed<playervehicle.maxspeed && !IsKeyDown(KEY_S)) speed+=playervehicle.acceleration;
+        if(IsKeyDown(KEY_S) && speed>-playervehicle.maxspeed && !IsKeyDown(KEY_W)) speed-=playervehicle.acceleration;
+        if(IsKeyUp(KEY_W)&&IsKeyUp(KEY_S)&&speed!=0){
+            if(speed>0) speed-=playervehicle.friction;
+            if(speed<0) speed+=playervehicle.friction;
+            if (speed<0.01f&&speed>-0.01f) speed=0.0f;
+        }
+    }
+            
             float moveX=sinf(rotation*DEG2RAD)*speed;
             float moveY=-cosf(rotation*DEG2RAD)*speed;
             float nextX=pos.x+moveX;
