@@ -1,47 +1,27 @@
-#include "cars.h"
-vehicle GetVehiclePreset(int choice){
-    vehicle temp;
-    switch(choice){
-        case 1: //rickshaw (starter)
-            temp.id=1;
-            temp.maxspeed=1.2f;
-            temp.acceleration=0.0025f;
-            temp.brakeforce=0.015f;
-            temp.maxpassengers=2;
-            temp.width=25;
-            temp.height=50;
-            break;
+#ifndef CAR_H //asks compiler if it has looked at a file named CAR_H during this build
+#define CAR_H //if no then it marks CAR_H as defined and tells it to read the contents of this file
+#include <raylib.h>
 
-        case 2: //cng
-            temp.id=2;
-            temp.maxspeed=1.75f;
-            temp.acceleration=0.0040f;
-            temp.brakeforce=0.02f;
-            temp.maxpassengers=3;
-            temp.width=30;
-            temp.height=50;
-            break;
+typedef struct vehicle{
+    int id;
+    float maxspeed;
+    float acceleration;
+    float friction;
+    int maxpassengers;
+    float width;
+    float height;
+    float brakeforce;
+} vehicle;
 
-        case 3: //auto
-            temp.id=3;
-            temp.maxspeed=1.5f;
-            temp.acceleration=0.003f;
-            temp.brakeforce=0.018f;
-            temp.maxpassengers=4;
-            temp.width=35;
-            temp.height=55;
-            break;
+vehicle GetVehiclePreset(int choice); //function prototype
 
-        case 4: //personal car (goal)
-            temp.id=4;
-            temp.maxspeed=4.0f;
-            temp.acceleration=0.02f;
-            temp.brakeforce=0.05f;
-            temp.maxpassengers=4;
-            temp.width=50;
-            temp.height=80;
-            break;
-    }
-    temp.friction=0.005f;
-    return temp;
-}
+typedef struct passenger{
+    Vector2 position;
+    Vector2 destination;
+    bool isspawned;
+    bool ispickedup;
+    float interactionradius;
+} Passenger;
+
+
+#endif
