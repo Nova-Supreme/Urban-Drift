@@ -127,30 +127,70 @@ int main()
 
         if(IsKeyPressed(KEY_ESCAPE)) paused=!paused;
         if(!paused){
-            if (speed!=0.0f){
-                if(IsKeyDown(KEY_D)) rotation+=0.5f;
-                if(IsKeyDown(KEY_A)) rotation-=0.5f;
-                rotation=fmodf(rotation,360.0f);
-            }
-            if(IsKeyDown(KEY_SPACE) && speed!=0.0f){ //emergency brake
-                if(speed>0.0f){
-                    speed-=playervehicle.brakeforce;
-                    if(speed<0.0f) speed=0.0f;
-                }
-                else if(speed<0.0f){
-                    speed+=playervehicle.brakeforce;
-                    if(speed>0.0f) speed=0.0f;
-                }
-            }
-            else{
-                if(IsKeyDown(KEY_W) && speed<playervehicle.maxspeed && !IsKeyDown(KEY_S)) speed+=playervehicle.acceleration;
-                if(IsKeyDown(KEY_S) && speed>-playervehicle.maxspeed && !IsKeyDown(KEY_W)) speed-=playervehicle.acceleration;
-                if(IsKeyUp(KEY_W)&&IsKeyUp(KEY_S)&&speed!=0){
-                    if(speed>0) speed-=playervehicle.friction;
-                    if(speed<0) speed+=playervehicle.friction;
-                    if(speed<0.01f&&speed>-0.01f) speed=0.0f;
-                }
-            }
+            int vertical = 0;
+int horizontal = 0;
+
+if(IsKeyDown(KEY_W) && !IsKeyDown(KEY_S))
+    vertical = -1;
+else if(IsKeyDown(KEY_S) && !IsKeyDown(KEY_W))
+    vertical = 1;
+
+if(IsKeyDown(KEY_D) && !IsKeyDown(KEY_A))
+    horizontal = 1;
+else if(IsKeyDown(KEY_A) && !IsKeyDown(KEY_D))
+    horizontal = -1;
+
+bool isMoving = (vertical != 0 || horizontal != 0);
+
+static float targetRotation = 90.0f;   // match your starting rotation
+
+if(isMoving)
+{
+    if(vertical==-1 && horizontal==0)       targetRotation =   0.0f;
+    else if(vertical==-1 && horizontal==1)  targetRotation =  45.0f;
+    else if(vertical==0  && horizontal==1)  targetRotation =  90.0f;
+    else if(vertical==1  && horizontal==1)  targetRotation = 135.0f;
+    else if(vertical==1  && horizontal==0)  targetRotation = 180.0f;
+    else if(vertical==1  && horizontal==-1) targetRotation = 225.0f;
+    else if(vertical==0  && horizontal==-1) targetRotation = 270.0f;
+    else if(vertical==-1 && horizontal==-1) targetRotation = 315.0f;
+}
+
+float turnSpeed = 3.0f;
+float diff = targetRotation - rotation;
+
+while(diff > 180.0f) diff -= 360.0f;
+while(diff < -180.0f) diff += 360.0f;
+
+if(fabsf(diff) <= turnSpeed)
+    rotation = targetRotation;
+else
+    rotation += (diff > 0.0f) ? turnSpeed : -turnSpeed;
+
+if(rotation < 0.0f) rotation += 360.0f;
+if(rotation >= 360.0f) rotation -= 360.0f;
+
+if(IsKeyDown(KEY_SPACE) && speed != 0.0f)
+{
+    if(speed > 0.0f)
+    {
+        speed -= playervehicle.brakeforce;
+        if(speed < 0.0f) speed = 0.0f;
+    }
+}
+else
+{
+    if(isMoving && speed < playervehicle.maxspeed)
+    {
+        speed += playervehicle.acceleration;
+    }
+    else if(!isMoving && speed != 0.0f)
+    {
+        speed -= playervehicle.friction;
+        if(speed < 0.01f)
+            speed = 0.0f;
+    }
+}
         }
             
         float moveX=sinf(rotation*DEG2RAD)*speed;
