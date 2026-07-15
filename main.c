@@ -6,9 +6,15 @@
 #include "player.h"
 #include "passenger.h"
 #include "render.h"
+#include "gamestate.h"
+#include "menu.h"
 
 int main()
 {
+    // ------------------------------------------------------------
+    // Gameplay state - identical to the previous version, only the
+    // "paused" bool is gone since STATE_PAUSE now covers that.
+    // ------------------------------------------------------------
     Player player = {0};
     player.pos = (Vector2){170.0f,350.0f};
     player.rotation = 90.0f;
@@ -48,7 +54,6 @@ int main()
     camera.zoom=1.0f;
 
     SetExitKey(KEY_NULL);
-    bool paused=false;
 
     Passenger currentpassenger={
         .position=(Vector2){490.0f,160.0f},
@@ -61,36 +66,131 @@ int main()
     int money=0;
     int score=0;
 
-    while(!WindowShouldClose()){
-        if(!intro.over){
-            Intro_HandleInput(&intro);
+    // ------------------------------------------------------------
+    // Navigation state
+    // ------------------------------------------------------------
+    GameState gameState = STATE_CUTSCENE;
 
-            BeginDrawing();
-            ClearBackground(BLACK);
-            Intro_Draw(&intro, GetScreenWidth(), GetScreenHeight());
-            EndDrawing();
-            continue; //skip the rest of the loop entirely while backstory is showing
+    while(!WindowShouldClose() && gameState != STATE_QUIT){
+
+        switch(gameState){
+
+            // ---------------------------------------------------------
+            // Intro cutscene - unmodified logic (Intro_HandleInput/Draw
+            // are exactly as before), we just react to intro.over here.
+            // ---------------------------------------------------------
+            case STATE_CUTSCENE:
+            {
+                Intro_HandleInput(&intro);
+                if(intro.over){
+                    gameState = STATE_MAIN_MENU;
+                    Menu_ResetMainMenu();
+                }
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    Intro_Draw(&intro, GetScreenWidth(), GetScreenHeight());
+                EndDrawing();
+            } break;
+
+            // ---------------------------------------------------------
+            case STATE_MAIN_MENU:
+            {
+                GameState next = UpdateMainMenu();
+                if(next == STATE_LEVEL_SELECT) Menu_ResetLevelSelect();
+                gameState = next;
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    DrawMainMenu(GetScreenWidth(), GetScreenHeight());
+                EndDrawing();
+            } break;
+
+            // ---------------------------------------------------------
+            case STATE_LEVEL_SELECT:
+            {
+                gameState = UpdateLevelSelect();
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    DrawLevelSelect(GetScreenWidth(), GetScreenHeight());
+                EndDrawing();
+            } break;
+
+            // ---------------------------------------------------------
+            case STATE_OPTIONS:
+            {
+                gameState = UpdateOptions();
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    DrawOptions(GetScreenWidth(), GetScreenHeight());
+                EndDrawing();
+            } break;
+
+            // ---------------------------------------------------------
+            case STATE_CONTROLS:
+            {
+                gameState = UpdateControls();
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    DrawControls(GetScreenWidth(), GetScreenHeight());
+                EndDrawing();
+            } break;
+
+            // ---------------------------------------------------------
+            // Gameplay - movement/camera/passenger logic below is byte
+            // for byte the same as before, just relocated into this case.
+            // ---------------------------------------------------------
+            case STATE_GAME:
+            {
+                if(IsKeyPressed(KEY_ESCAPE)){
+                    gameState = STATE_PAUSE;
+                    Menu_ResetPauseMenu();
+                }
+                else{
+                    Player_HandleInput(&player);
+                    Player_UpdatePosition(&player, worldwidth, worldheight);
+                    Passenger_Update(&currentpassenger, player.pos, player.veh.width, player.speed, &money);
+
+                    if(player.pos.x<(float)gamewidth/2.0f) camera.target.x=(float)gamewidth/2.0f;
+                    else if(player.pos.x>worldwidth-((float)gamewidth/2.0f)) camera.target.x=worldwidth-((float)gamewidth/2.0f);
+                    else camera.target.x=player.pos.x;
+                    if(player.pos.y<(float)gameheight/2.0f) camera.target.y=(float)gameheight/2.0f;
+                    else if(player.pos.y>worldheight-((float)gameheight/2.0f)) camera.target.y=worldheight-((float)gameheight/2.0f);
+                    else camera.target.y=player.pos.y;
+                }
+
+                Render_DrawWorld(target, camera, maptexture, worldwidth, worldheight, currentpassenger, player);
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    Render_DrawScreen(target, gamewidth, gameheight, money, currentpassenger);
+                EndDrawing();
+            } break;
+
+            // ---------------------------------------------------------
+            // Pause - world is drawn frozen (no updates called) behind
+            // the pause menu overlay.
+            // ---------------------------------------------------------
+            case STATE_PAUSE:
+            {
+                GameState next = UpdatePauseMenu();
+                if(next == STATE_MAIN_MENU) Menu_ResetMainMenu();
+                gameState = next;
+
+                Render_DrawWorld(target, camera, maptexture, worldwidth, worldheight, currentpassenger, player);
+
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    Render_DrawScreen(target, gamewidth, gameheight, money, currentpassenger);
+                    DrawPauseMenu(GetScreenWidth(), GetScreenHeight());
+                EndDrawing();
+            } break;
+
+            default: break;
         }
-
-        if(IsKeyPressed(KEY_ESCAPE)) paused=!paused;
-        if(!paused){
-            Player_HandleInput(&player);
-        }
-
-        // NOTE: preserved from the original file - movement/passenger/camera updates
-        // run every frame regardless of `paused`, only input handling is gated.
-        Player_UpdatePosition(&player, worldwidth, worldheight);
-        Passenger_Update(&currentpassenger, player.pos, player.veh.width, player.speed, &money);
-
-        if(player.pos.x<(float)gamewidth/2.0f) camera.target.x=(float)gamewidth/2.0f;
-        else if(player.pos.x>worldwidth-((float)gamewidth/2.0f)) camera.target.x=worldwidth-((float)gamewidth/2.0f);
-        else camera.target.x=player.pos.x;
-        if(player.pos.y<(float)gameheight/2.0f) camera.target.y=(float)gameheight/2.0f;
-        else if(player.pos.y>worldheight-((float)gameheight/2.0f)) camera.target.y=worldheight-((float)gameheight/2.0f);
-        else camera.target.y=player.pos.y;
-
-        Render_DrawWorld(target, camera, maptexture, worldwidth, worldheight, currentpassenger, player);
-        Render_DrawScreen(target, gamewidth, gameheight, money, currentpassenger, paused);
     }
 
     for(int i=0;i<4;i++) UnloadTexture(car[i]);
