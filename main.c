@@ -11,6 +11,10 @@
 #include "title.h"
 #include "save.h"
 
+// Set to 0 to re-enable enemy traffic. Kept off while road segments are being
+// fine-tuned so the player can drive without being killed by enemies.
+#define ENEMIES_DISABLED 1
+
 // Which screen the game is showing right now.
 typedef enum {
     STATE_INTRO,     // the opening slideshow (shown once, on launch)
@@ -127,8 +131,10 @@ int main()
 
     Enemy enemies[MAX_ENEMIES] = {0};
     float spawnTimer = 0.0f;
+#if !ENEMIES_DISABLED
     const float spawnInterval = 2.0f; // a new enemy appears every 2 seconds
     int routeLength = Enemy_RouteLength();
+#endif
 
     // ---- The passengers for the round ----
     // Several can be on the road (and carried) at once, so it's an array.
@@ -144,7 +150,9 @@ int main()
     int savedVehicleId = 1;
     int score          = 0;
     int lives          = 5;
+#if !ENEMIES_DISABLED
     const float hurtTime=1.0f;
+#endif
     float hurtTimer=0.0f;
     bool paused=false;
     bool confirmWipe=false; // true when the settings screen is asking to confirm
@@ -366,6 +374,7 @@ int main()
                 }
             }
 
+            #if !ENEMIES_DISABLED
             // Spawn a new enemy every few seconds, up to the MAX_ENEMIES limit.
             spawnTimer += GetFrameTime();
             if(spawnTimer >= spawnInterval){
@@ -393,6 +402,7 @@ int main()
                     }
                 }
             }
+#endif
 
             // Count down the level clock. When time runs out the player has
             // finished the level - save progress and show the win screen.

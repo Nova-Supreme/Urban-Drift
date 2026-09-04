@@ -39,8 +39,14 @@ void Render_DrawWorld(RenderTexture2D target, Camera2D camera, Texture2D maptext
                     if(seg.type == ROAD_RECT){
                         DrawRectangleLinesEx(seg.rect, 3.0f, MAGENTA);
                     }
-                    else { // ROAD_CIRCLE
+                    else if(seg.type == ROAD_CIRCLE){
                         DrawCircleLinesV(seg.center, seg.radius, MAGENTA);
+                        DrawCircleV(seg.center, 5.0f, MAGENTA);
+                    }
+                    else { // ROAD_SEMI: draw just the arc between the two angles
+                        DrawCircleSectorLines(seg.center, seg.radius,
+                                              seg.startAngle, seg.endAngle,
+                                              32, MAGENTA);
                         DrawCircleV(seg.center, 5.0f, MAGENTA);
                     }
                 }

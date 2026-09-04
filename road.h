@@ -6,14 +6,19 @@
 
 // The drivable road is built out of small pieces. Each piece is either:
 //   - ROAD_RECT   : a plain rectangle (for straight road stretches)
-//   - ROAD_CIRCLE : a circle centred at `center` (for curves and junctions)
-typedef enum { ROAD_RECT, ROAD_CIRCLE } RoadType;
+//   - ROAD_CIRCLE : a full circle centred at `center` (for curves/junctions)
+//   - ROAD_SEMI   : part of a circle from startAngle to endAngle, in DEGREES
+//                   (for half-circle turns). 0 deg = right, 90 = down,
+//                   180 = left, 270 = up. A semicircle is 180 degrees of arc.
+typedef enum { ROAD_RECT, ROAD_CIRCLE, ROAD_SEMI } RoadType;
 
 typedef struct {
     RoadType type;
-    Rectangle rect;   // used when type == ROAD_RECT
-    Vector2   center; // used when type == ROAD_CIRCLE
-    float     radius; // used when type == ROAD_CIRCLE
+    Rectangle rect;     // used when type == ROAD_RECT
+    Vector2   center;   // used for ROAD_CIRCLE and ROAD_SEMI
+    float     radius;   // used for ROAD_CIRCLE and ROAD_SEMI
+    float     startAngle; // used for ROAD_SEMI only (degrees)
+    float     endAngle;   // used for ROAD_SEMI only (degrees)
 } RoadSegment;
 
 // The biggest the road is allowed to get. If you add more pieces than this,

@@ -67,22 +67,28 @@ void Player_HandleInput(Player* player)
     }
 }
 
-void Player_UpdatePosition(Player* player, float worldwidth, float worldheight)
+void Player_UpdatePosition(Player* player, RoadNetwork* road)
 {
+    // How far the car wants to move this frame, along the way it is facing.
     float moveX = sinf(player->rotation*DEG2RAD)*player->speed;
     float moveY = -cosf(player->rotation*DEG2RAD)*player->speed;
 
-    float nextX = player->pos.x + moveX;
-    float leftwall = player->veh.width/2.0f;
-    float rightwall = worldwidth - player->veh.width/2.0f;
-    if(nextX < leftwall) player->pos.x = leftwall;
-    else if(nextX > rightwall) player->pos.x = rightwall;
-    else player->pos.x = nextX;
-
-    float nextY = player->pos.y + moveY;
-    float topwall = player->veh.height/2.0f;
-    float bottomwall = worldheight - player->veh.height/2.0f;
-    if(nextY < topwall) player->pos.y = topwall;
-    else if(nextY > bottomwall) player->pos.y = bottomwall;
-    else player->pos.y = nextY;
+    // The car may only move if it STAYS ON the road. We try the full move
+    // first; if that would leave the road, we try each axis on its own. This
+    // lets the car slide along a road edge instead of sticking to it.
+    if (Road_Contains(road, (Vector2){player->pos.x + moveX, player->pos.y + moveY}))
+    {
+        player->pos.x += moveX;
+        player->pos.y += moveY;
+    }
+    else if (Road_Contains(road, (Vector2){player->pos.x + moveX, player->pos.y}))
+    {
+        player->pos.x += moveX;
+    }
+    else if (Road_Contains(road, (Vector2){player->pos.x, player->pos.y + moveY}))
+    {
+        player->pos.y += moveY;
+    }
+    // ponytail: on a very sharp corner the car can stop a little earlier than
+    // a perfect collision would; the axis-split check is good enough for now.
 }

@@ -3,6 +3,7 @@
 
 #include <raylib.h>
 #include "cars.h"
+#include "road.h"
 
 typedef struct {
     Vector2 pos;
@@ -14,6 +15,6 @@ typedef struct {
 } Player;
 
 void Player_HandleInput(Player* player);
-void Player_UpdatePosition(Player* player, float worldwidth, float worldheight);
+void Player_UpdatePosition(Player* player, RoadNetwork* road);
 
 #endif
