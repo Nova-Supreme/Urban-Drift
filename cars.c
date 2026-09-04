@@ -2,8 +2,9 @@
 vehicle GetVehiclePreset(int choice){
     vehicle temp;
     switch(choice){
-            case 1: //rickshaw (starter)
+            case 1: //rickshaw (starter, already owned)
         temp.id=1;
+        temp.cost=0;
         temp.maxspeed=1.2f;
         temp.acceleration=0.0025f;
         temp.brakeforce=0.015f;
@@ -14,6 +15,7 @@ vehicle GetVehiclePreset(int choice){
 
     case 2: //cng
         temp.id=2;
+        temp.cost=1000;
         temp.maxspeed=1.75f;
         temp.acceleration=0.0040f;
         temp.brakeforce=0.02f;
@@ -24,6 +26,7 @@ vehicle GetVehiclePreset(int choice){
 
     case 3: //auto
         temp.id=3;
+        temp.cost=2500;
         temp.maxspeed=1.5f;
         temp.acceleration=0.003f;
         temp.brakeforce=0.018f;
@@ -34,6 +37,7 @@ vehicle GetVehiclePreset(int choice){
 
     case 4: //personal car (goal)
         temp.id=4;
+        temp.cost=10000;
         temp.maxspeed=4.0f;
         temp.acceleration=0.02f;
         temp.brakeforce=0.05f;

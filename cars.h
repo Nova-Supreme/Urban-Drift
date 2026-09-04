@@ -4,6 +4,7 @@
 
 typedef struct vehicle{
     int id;
+    int cost;
     float maxspeed;
     float acceleration;
     float friction;
