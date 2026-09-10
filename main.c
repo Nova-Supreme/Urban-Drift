@@ -154,7 +154,8 @@ static int StartRun(Player* player, Texture2D* car, int level, int vehicleId,
                     float* passengerTimer, float* worldwidth, float* worldheight,
                     bool* paused)
 {
-    level = (level == 1) ? 1 : 0;  // only map0 and map1 exist
+    level = 1; // map0 is DISABLED for now while its roads are being reworked;
+               // every round (fresh, continue or unlock) happens on map1.
     if(vehicleId < 1 || vehicleId > 4) vehicleId = 1;
     SetVehicle(player, car, vehicleId);
     if(freshRun) *overallTime = 0.0f; // a fresh run always times from zero
@@ -207,7 +208,7 @@ int main()
     Road_Load(&roadNets[0]);
     Road_LoadMap1(&roadNets[1]);
     RoadNetwork* road = &roadNets[0];
-    int level = 0; // which map we are on: 0 = map0, 1 = map1
+    int level = 1; // which map we are on: 1 = map1 (map0 disabled while being reworked)
 
     Enemy enemies[MAX_ENEMIES] = {0};
 
@@ -267,7 +268,7 @@ int main()
         ownedMask      = saved.ownedMask;
         savedVehicleId = saved.savedVehicleId;
         completedMask  = saved.completedMask;
-        level          = saved.level;
+        level          = 1; // map0 is disabled; CONTINUE always resumes on map1
     }
 
     // ---- Screen flow ----
@@ -391,7 +392,7 @@ int main()
                 // for the record before driving on.
                 SetVehicle(&player, car, unlockedVehicle);
                 money -= GetVehiclePreset(unlockedVehicle).cost; // pay for the new ride
-                level = (level + 1) % 2;
+                level = 1; // map0 is disabled, so an unlock re-runs map1 with the new vehicle
                 road = &roadNets[level]; // the next map has its own roads
                 if(unlockedVehicle == 4){
                     nameLen = 0;
