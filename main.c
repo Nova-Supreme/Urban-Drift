@@ -10,25 +10,25 @@
 #include "enemy.h"
 #include "title.h"
 #include "save.h"
-
-// Set to 0 to re-enable enemy traffic. Kept off while road segments are being
-// fine-tuned so the player can drive without being killed by enemies.
-#define ENEMIES_DISABLED 1
+#include "records.h"
 
 // Which screen the game is showing right now.
 typedef enum {
-    STATE_INTRO,     // the opening slideshow (shown once, on launch)
-    STATE_TITLE,     // the main menu
-    STATE_VEHICLES,  // choosing which car to drive
-    STATE_PLAYING,   // driving round
-    STATE_OVER,      // the "game over" screen
-    STATE_WIN,       // the "level complete" screen
-    STATE_SETTINGS   // the settings menu (wipe saved data)
+    STATE_INTRO,       // the opening slideshow (shown once, on launch)
+    STATE_TITLE,       // the main menu
+    STATE_PLAYING,     // driving round
+    STATE_OVER,        // the "game over" screen
+    STATE_UNLOCK,      // "(vehicle) unlocked!" alert + 5 second countdown
+    STATE_NAMEINPUT   // typing a name for the world record (after the CAR)
 } GameState;
 
-// How many seconds the player has to complete a level. The first map (map0)
-// is timed at 5 minutes.
-#define LEVEL_TIME_SECONDS 300.0f
+// The map image is stretched onto a rectangle of this size. map1 is made
+// LARGER than map0 so its roads render thicker against the car's fixed 30px
+// size (at map0's scale they felt too thin). Raise these to stretch further.
+#define WORLD_W0 2048.0f
+#define WORLD_H0 1536.0f
+#define WORLD_W1 3072.0f
+#define WORLD_H1 2304.0f
 
 // Switches the player's car to `vehicleId` and swaps its picture.
 static void SetVehicle(Player* player, Texture2D* carTextures, int vehicleId)
@@ -37,16 +37,23 @@ static void SetVehicle(Player* player, Texture2D* carTextures, int vehicleId)
     player->texture = carTextures[vehicleId - 1];
 }
 
-// Puts everything back to the very start of a fresh round. Used by both the
-// "PLAY" menu option and the "R" restart on the game-over screen.
-// NOTE: the player's money is NOT reset here - it is a running total that is
-// carried from the save file and only grows with fares (or shrinks when
-// buying cars), so it survives from one round to the next.
+// Puts the current level back to its very start: the car at spawn, full lives,
+// all passengers and enemies cleared, fare multiplier back to 1.0.
+// NOTE: money is NOT reset here - it is a running total that survives from one
+// level/run to the next, and it is exactly what unlocks the vehicles. The
+// money multiplier resets because a brand-new level starts your fares at $100.
 static void ResetRun(Player* player, int* lives, int* score,
-                     float* hurtTimer, Enemy* enemies, float* spawnTimer,
-                     Passenger* passengers, int passengerCount, Intro* intro)
+                     float* hurtTimer, Enemy* enemies,
+                     Passenger* passengers, int passengerCount,
+                     Intro* intro, float* moneyMultiplier, int level)
 {
-    player->pos = (Vector2){170.0f,350.0f};
+    // Spawn the car ON the level's own road, pointing along it.
+    //   map0 starts at the west end of its single horizontal road;
+    //   map1 starts at the west end of the big bottom trunk road.
+    if(level == 0)
+        player->pos = (Vector2){170.0f,350.0f};
+    else
+        player->pos = (Vector2){600.0f,1178.0f};
     player->rotation = 90.0f;
     player->targetRotation = 90.0f;
     player->speed = 0.0f;
@@ -54,9 +61,11 @@ static void ResetRun(Player* player, int* lives, int* score,
     *lives = 5;
     *score = 0;
     *hurtTimer = 0.0f;
+    *moneyMultiplier = 1.0f;
 
+    // Empty all enemy slots - StartTraffic() fills in the level's cars right
+    // after this runs.
     for(int i=0;i<MAX_ENEMIES;i++) enemies[i].active = false;
-    *spawnTimer = 0.0f;
 
     // Clear any existing passengers. A brand-new one is spawned on a random
     // road point shortly after the level starts (see the PLAYING loop), and a
@@ -71,22 +80,88 @@ static void ResetRun(Player* player, int* lives, int* score,
     intro->over = true;
 }
 
-// Sets up the bits of state that start fresh with each level: how long before
-// the first passenger appears, how much time is left on the clock, and the
-// money figure we later subtract to show "earned this level".
-static void PrepareLevel(float* passengerTimer, float* levelTime, int* levelStartMoney, int totalMoney)
+// Stores the world (map-image stretch) dimensions for the given level. Each
+// level switch must call this before drawing so the map fills its own size.
+static void SetWorldSize(int level, float* worldwidth, float* worldheight)
 {
-    *passengerTimer = 2.0f;
-    *levelTime = LEVEL_TIME_SECONDS;
-    *levelStartMoney = totalMoney;
+    if(level == 0){ *worldwidth = WORLD_W0; *worldheight = WORLD_H0; }
+    else          { *worldwidth = WORLD_W1; *worldheight = WORLD_H1; }
 }
 
-// Saves the player's progress so "CONTINUE" can pick it up later. `active`
-// should be 1 when the round is still going (so Continue works) and 0 when the
-// player lost (so Continue is disabled).
-static void SaveProgress(int money, int vehicleId, int ownedMask, int active)
+// Places the cars that are driving when the level starts. There is NO random
+// spawning - every vehicle is already sitting on its route when the player
+// appears, and just follows its path. This is where future levels would add
+// their own cars.
+static void StartTraffic(Enemy* enemies, Texture2D* carTextures, int level)
 {
-    Save_Write((SaveData){money, vehicleId, ownedMask}, active);
+    // Tutorial level (map0): exactly ONE car on the long horizontal road.
+    // It starts at waypoint 0 (the west end) and loops around the road.
+    // Routes are hand-tuned per map in enemy.c - map1 has no traffic yet,
+    // so it only starts cars when level == 0.
+    if(level == 0)
+        Enemy_Spawn(enemies, MAX_ENEMIES, 0, carTextures[2]);
+}
+
+// Sets up the bits of state that start fresh with each level.
+static void PrepareLevel(float* passengerTimer)
+{
+    *passengerTimer = 2.0f; // how long before the first passenger appears
+}
+
+// Saves the player's progress to disk. `active` says whether the round is
+// still going (1) or was lost (0); either way the money is kept. `level` is
+// which map the round is on, so CONTINUE can pick up at the same spot.
+static void SaveProgress(int money, int vehicleId, int ownedMask, int completedMask, int active, int level)
+{
+    // Build the struct field-by-field (named assignment) so a value can never
+    // slip into the wrong slot and corrupt the saved progress.
+    SaveData d;
+    d.money          = money;
+    d.savedVehicleId = vehicleId;
+    d.ownedMask      = ownedMask;
+    d.active         = active;
+    d.completedMask  = completedMask;
+    d.level          = level;
+    Save_Write(d, active);
+}
+
+// Called when a level starts (fresh run or retry): resets the whole world and
+// jumps into the driving state.
+// NOTE: the caller already points `road` at this level's road layout before
+// calling us (road = &roadNets[level]) - this helper only resets the world.
+static void BeginLevel(Player* player, int* lives, int* score, float* hurtTimer,
+                       Enemy* enemies, Passenger* passengers, int passengerCount,
+                       Intro* intro, float* moneyMultiplier, Texture2D* car,
+                       int level, float* passengerTimer, float* worldwidth,
+                       float* worldheight, bool* paused)
+{
+    SetWorldSize(level, worldwidth, worldheight);
+    ResetRun(player, lives, score, hurtTimer, enemies, passengers, passengerCount,
+             intro, moneyMultiplier, level);
+    StartTraffic(enemies, car, level);
+    PrepareLevel(passengerTimer);
+    *paused = false;
+}
+
+// Starts a run: fresh games begin on map0 in the rickshaw with a reset clock;
+// CONTINUE restarts the level that was being played when the game was quit.
+// Returns the level that was started, so the caller can point the road and
+// camera at the right map.
+static int StartRun(Player* player, Texture2D* car, int level, int vehicleId,
+                    bool freshRun, float* overallTime, int* lives, int* score,
+                    float* hurtTimer, Enemy* enemies, Passenger* passengers,
+                    int passengerCount, Intro* intro, float* moneyMultiplier,
+                    float* passengerTimer, float* worldwidth, float* worldheight,
+                    bool* paused)
+{
+    level = (level == 1) ? 1 : 0;  // only map0 and map1 exist
+    if(vehicleId < 1 || vehicleId > 4) vehicleId = 1;
+    SetVehicle(player, car, vehicleId);
+    if(freshRun) *overallTime = 0.0f; // a fresh run always times from zero
+    BeginLevel(player, lives, score, hurtTimer, enemies, passengers, passengerCount,
+               intro, moneyMultiplier, car, level, passengerTimer,
+               worldwidth, worldheight, paused);
+    return level;
 }
 
 int main()
@@ -110,15 +185,16 @@ int main()
 
     Texture2D map[5];
     map[0]=LoadTexture("assets/map0.png");
-    Texture2D maptexture=map[0];
+    map[1]=LoadTexture("assets/map1.png");
 
     // ---- The player's car (starts as the rickshaw) ----
     Player player = {0};
     SetVehicle(&player, car, 1);
 
     // ---- The world (map, camera, road, enemies) ----
-    float worldwidth=1024.0f*2.0f;
-    float worldheight=768.0f*2.0f;
+    float worldwidth;
+    float worldheight;
+    SetWorldSize(0, &worldwidth, &worldheight); // map0's size before any level is chosen
 
     Camera2D camera={0};
     camera.target=player.pos;
@@ -126,50 +202,72 @@ int main()
     camera.rotation=0.0f;
     camera.zoom=1.0f;
 
-    RoadNetwork road;
-    Road_Load(&road);
+    // One road layout per level; `road` points at the current level's one.
+    RoadNetwork roadNets[2];
+    Road_Load(&roadNets[0]);
+    Road_LoadMap1(&roadNets[1]);
+    RoadNetwork* road = &roadNets[0];
+    int level = 0; // which map we are on: 0 = map0, 1 = map1
 
     Enemy enemies[MAX_ENEMIES] = {0};
-    float spawnTimer = 0.0f;
-#if !ENEMIES_DISABLED
-    const float spawnInterval = 2.0f; // a new enemy appears every 2 seconds
-    int routeLength = Enemy_RouteLength();
-#endif
 
     // ---- The passengers for the round ----
     // Several can be on the road (and carried) at once, so it's an array.
     Passenger passengers[MAX_PASSENGERS] = {0};
 
     // ---- Run state (score, lives, hurt window) ----
-    // money and ownedMask persist between runs (from the save file). Only the
-    // rickshaw (id 1) is owned at the very beginning.
-    // savedVehicleId is the car the LAST round was driven with - CONTINUE uses
-    // it, so changing cars in the menu never changes a continued run.
+    // money persists between runs (from the save file). You never spend it -
+    // the money total is what unlocks the next vehicle when it reaches its
+    // purchase price. ownedMask/completedMask are written for save-file
+    // compatibility but no longer change how the game plays.
     int money          = 0;
     int ownedMask      = 1;
     int savedVehicleId = 1;
+    int completedMask  = 0;
     int score          = 0;
     int lives          = 5;
-#if !ENEMIES_DISABLED
     const float hurtTime=1.0f;
-#endif
     float hurtTimer=0.0f;
     bool paused=false;
-    bool confirmWipe=false; // true when the settings screen is asking to confirm
+
+    // The fare multiplier for the current level: starts at 1.0 and climbs 0.1
+    // with every passenger delivered (see Passenger_Update). ResetRun sets it
+    // back to 1.0 for each new level.
+    float moneyMultiplier = 1.0f;
+
+    // The overall run clock. It keeps counting across ALL the levels and
+    // retries of a run, and only stops when the CAR is unlocked - that total
+    // time goes into the world record tracker with the name the player picks.
+    float overallTime = 0.0f;
+
+    // ---- The unlock alert ----
+    // When money reaches the next vehicle's price the game stops, shows the
+    // "(vehicle) unlocked!" alert for a few seconds, then moves to the next
+    // level with the new vehicle. These hold the alert's state.
+    int   unlockedVehicle = 0;  // the vehicle that was just unlocked (2..4)
+    float unlockTimer = 5.0f;   // how long the alert stays up
+
+    // ---- The world record name input ---- 
+    char  nameInput[RECORD_NAME_MAX + 1] = {0};
+    int   nameLen = 0;
+
+    // The world record tracker (a separate file on purpose, so it survives NEW
+    // GAME resets and is only ever added to by finishing the CAR run).
+    RecordEntry records[MAX_RECORDS];
+    int recordCount = Records_Load(records, MAX_RECORDS);
 
     // Timer before the next passenger appears (they keep coming one after
-    // another while you drive), how much time is left on the level clock, and
-    // the money when the level started (so we can show "earned this level").
+    // another while you drive).
     float passengerTimer=0.0f;
-    float levelTime=LEVEL_TIME_SECONDS;
-    int levelStartMoney=0;
 
-    // Pull the saved money and owned cars into memory if a save already exists.
+    // Pull the saved money into memory if a save already exists.
     SaveData saved;
     if(Save_Load(&saved)){
         money          = saved.money;
         ownedMask      = saved.ownedMask;
         savedVehicleId = saved.savedVehicleId;
+        completedMask  = saved.completedMask;
+        level          = saved.level;
     }
 
     // ---- Screen flow ----
@@ -177,7 +275,7 @@ int main()
     intro.over = false;
     Intro_Load(&intro);        // prepare the opening slideshow
     TitleScreen title;
-    Title_Init(&title);
+    Title_Init(&title, saved.active == 1);
     GameState state = STATE_INTRO; // the slideshow is the very first screen
     bool quit = false;
 
@@ -203,23 +301,43 @@ int main()
         }
 
         // ---------------- TITLE SCREEN ----------------
+        // Re-read the save file each time the menu is shown so CONTINUE (and
+        // the money/car/map it resumes) always match what is on disk.
         if(state == STATE_TITLE){
+            Save_Load(&saved); // keep `saved` in step with disk for CONTINUE
+            Title_Refresh(&title, Save_Exists() && saved.active == 1);
             // Pick what the player chose, if anything.
             int choice = Title_HandleMenu(&title);
             if(choice != -1){
-                if(choice == TITLE_PLAY){
-                    ResetRun(&player, &lives, &score, &hurtTimer,
-                             enemies, &spawnTimer, passengers, MAX_PASSENGERS, &intro);
-                    PrepareLevel(&passengerTimer, &levelTime, &levelStartMoney, money);
-                    paused = false;
+                if(choice == TITLE_CONTINUE){
+                    // Carry on the last run: same money, same car, same map.
+                    // The overall clock keeps counting from where it was within
+                    // this session (the timer is not stored in the save file,
+                    // so a fresh app start re-times the run from zero).
+                    level = StartRun(&player, car, saved.level, savedVehicleId, false,
+                                     &overallTime, &lives, &score, &hurtTimer,
+                                     enemies, passengers, MAX_PASSENGERS, &intro,
+                                     &moneyMultiplier, &passengerTimer,
+                                     &worldwidth, &worldheight, &paused);
+                    road = &roadNets[level];
                     state = STATE_PLAYING;
                 }
-                else if(choice == TITLE_VEHICLES){
-                    state = STATE_VEHICLES;
-                }
-                else if(choice == TITLE_SETTINGS){
-                    confirmWipe = false; // start at the settings menu, not confirm
-                    state = STATE_SETTINGS;
+                else if(choice == TITLE_PLAY){
+                    // A completely fresh game: money, cars owned and the map all
+                    // start over, and the run clock resets too. Any old save is
+                    // discarded, so CONTINUE disappears until this run is saved.
+                    Save_Delete();
+                    money = 0;
+                    ownedMask = 1;
+                    savedVehicleId = 1;
+                    completedMask = 0;
+                    level = StartRun(&player, car, 0, 1, true,
+                                     &overallTime, &lives, &score, &hurtTimer,
+                                     enemies, passengers, MAX_PASSENGERS, &intro,
+                                     &moneyMultiplier, &passengerTimer,
+                                     &worldwidth, &worldheight, &paused);
+                    road = &roadNets[level];
+                    state = STATE_PLAYING;
                 }
                 else if(choice == TITLE_QUIT){
                     quit = true;
@@ -228,71 +346,7 @@ int main()
 
             BeginDrawing();
             ClearBackground(BLACK);
-            Title_DrawMenu(&title, GetScreenWidth(), GetScreenHeight());
-            EndDrawing();
-            continue;
-        }
-
-        // ---------------- VEHICLE SELECT ----------------
-        if(state == STATE_VEHICLES){
-            int action = Title_HandleVehicles(&title);
-            if(action == VEHICLE_BACK){
-                state = STATE_TITLE; // ESC: go back without changing anything
-            }
-            else if(action == VEHICLE_CHOOSE){
-                int id   = title.vehicleIndex + 1; // highlighted car (1..4)
-                int cost = GetVehiclePreset(id).cost;
-
-                if(ownedMask & (1 << (id - 1))){
-                    // Already owned -> make it the car used by the next PLAY.
-                    SetVehicle(&player, car, id);
-                    state = STATE_TITLE;
-                }
-                else if(money >= cost){
-                    // Buy it: spend the money, mark it owned, and save progress.
-                    // Purchases don't start or end a run, so keep the saved
-                    // round exactly as active (continue-able) as it was.
-                    money -= cost;
-                    ownedMask |= (1 << (id - 1));
-                    SaveProgress(money, savedVehicleId, ownedMask, saved.active);
-                }
-                // else: cannot afford it - simply nothing happens.
-            }
-
-            BeginDrawing();
-            ClearBackground(BLACK);
-            Title_DrawVehicles(&title, GetScreenWidth(), GetScreenHeight(), car, player.veh.id, money, ownedMask);
-            EndDrawing();
-            continue;
-        }
-
-        // ---------------- SETTINGS SCREEN ----------------
-        // Offers a way to wipe all saved data and start completely fresh.
-        // ENTER picks the wipe option, then a Y/N confirmation asks again
-        // before anything is actually deleted.
-        if(state == STATE_SETTINGS){
-            if(confirmWipe){
-                // We're asking "are you sure?": Y wipes, N or ESC cancels.
-                if(IsKeyPressed(KEY_Y)){
-                    Save_Delete();                    // remove the save file on disk
-                    money = 0;                        // reset in-memory progress too
-                    ownedMask = 1;                    // back to only the starter car
-                    savedVehicleId = 1;
-                    SetVehicle(&player, car, 1);
-                    confirmWipe = false;
-                    state = STATE_TITLE;
-                }
-                if(IsKeyPressed(KEY_N) || IsKeyPressed(KEY_ESCAPE)) confirmWipe = false;
-            }
-            else{
-                // Plain settings menu: ENTER offers to wipe, ESC goes back.
-                if(IsKeyPressed(KEY_ENTER)) confirmWipe = true;
-                if(IsKeyPressed(KEY_ESCAPE)) state = STATE_TITLE;
-            }
-
-            BeginDrawing();
-            ClearBackground(BLACK);
-            Render_DrawSettings(GetScreenWidth(), GetScreenHeight(), confirmWipe);
+            Title_DrawMenu(&title, GetScreenWidth(), GetScreenHeight(), records, recordCount);
             EndDrawing();
             continue;
         }
@@ -300,37 +354,128 @@ int main()
         // ---------------- GAME OVER SCREEN ----------------
         if(state == STATE_OVER){
             if(IsKeyPressed(KEY_R)){
-                ResetRun(&player, &lives, &score, &hurtTimer,
-                         enemies, &spawnTimer, passengers, MAX_PASSENGERS, &intro);
-                PrepareLevel(&passengerTimer, &levelTime, &levelStartMoney, money);
-                paused = false;
+                // Restart the CURRENT level (the one that was just lost). The
+                // run's money and overall clock keep counting.
+                BeginLevel(&player, &lives, &score, &hurtTimer,
+                           enemies, passengers, MAX_PASSENGERS, &intro,
+                               &moneyMultiplier, car, level, &passengerTimer,
+                               &worldwidth, &worldheight, &paused);
                 state = STATE_PLAYING;
             }
             if(IsKeyPressed(KEY_ESCAPE)) state = STATE_TITLE; // back to menu
 
-            Render_DrawWorld(target, camera, maptexture, worldwidth, worldheight, passengers, MAX_PASSENGERS, player, enemies, MAX_ENEMIES, &road, showRoad);
-            Render_DrawScreen(target, gamewidth, gameheight, money, lives, passengers, MAX_PASSENGERS, false, true, player.pos, (int)levelTime);
+            Render_DrawWorld(target, camera, map[level], worldwidth, worldheight, passengers, MAX_PASSENGERS, player, enemies, MAX_ENEMIES, road, showRoad);
+            Render_DrawScreen(target, gamewidth, gameheight, money, lives, passengers, MAX_PASSENGERS, false, true, player.pos, (int)overallTime, moneyMultiplier);
             continue;
         }
 
-        // ---------------- LEVEL COMPLETE SCREEN ----------------
-        // Shown when the player survives until the whole level time is used up.
-        // N moves to the next level; ESC returns to the menu.
-        if(state == STATE_WIN){
-            if(IsKeyPressed(KEY_N)){
-                ResetRun(&player, &lives, &score, &hurtTimer,
-                         enemies, &spawnTimer, passengers, MAX_PASSENGERS, &intro);
-                PrepareLevel(&passengerTimer, &levelTime, &levelStartMoney, money);
-                paused = false;
-                state = STATE_PLAYING;
-                // NOTE: only map0 exists, so the "next level" reuses map0 for
-                // now. To add more maps, load map[n] into maptexture here and
-                // pick the next asset before SetVehicle/ResetRun.
+        // ---------------- UNLOCK ALERT ----------------
+        // Shown when money reaches the next vehicle's price. The world freezes
+        // and a countdown plays: "(vehicle) unlocked! proceeding to next level".
+        if(state == STATE_UNLOCK){
+            if(IsKeyPressed(KEY_ESCAPE)){
+                // Back out of the unlock: the new car is NOT taken yet, so the
+                // save keeps the current car and level. CONTINUE resumes where
+                // the alert left off, and it triggers again on the next frame.
+                SaveProgress(money, player.veh.id, ownedMask, completedMask, 1, level);
+                nameLen = 0;
+                state = STATE_TITLE;
             }
-            if(IsKeyPressed(KEY_ESCAPE)) state = STATE_TITLE; // back to menu
 
-            Render_DrawWorld(target, camera, maptexture, worldwidth, worldheight, passengers, MAX_PASSENGERS, player, enemies, MAX_ENEMIES, &road, showRoad);
-            Render_DrawWin(gamewidth, gameheight, money, levelStartMoney);
+            unlockTimer -= GetFrameTime();
+            if(unlockTimer <= 0.0f){
+                // Put the new vehicle in the player's hands and move to the
+                // next map. Its price comes out of the money, which is what
+                // made the unlock possible in the first place. Unlocking the
+                // CAR (id 4) is the end of the run, so the player types a name
+                // for the record before driving on.
+                SetVehicle(&player, car, unlockedVehicle);
+                money -= GetVehiclePreset(unlockedVehicle).cost; // pay for the new ride
+                level = (level + 1) % 2;
+                road = &roadNets[level]; // the next map has its own roads
+                if(unlockedVehicle == 4){
+                    nameLen = 0;
+                    state = STATE_NAMEINPUT;
+                }
+                else{
+                    BeginLevel(&player, &lives, &score, &hurtTimer,
+                               enemies, passengers, MAX_PASSENGERS, &intro,
+                               &moneyMultiplier, car, level, &passengerTimer,
+                               &worldwidth, &worldheight, &paused);
+                    state = STATE_PLAYING;
+                }
+            }
+
+            // The alert screen sits on a solid black background (not a
+            // translucent box over the game world) so the transition to the
+            // next level doesn't flash.
+            BeginDrawing();
+            ClearBackground(BLACK);
+            const char* vehName = Title_VehicleName(unlockedVehicle);
+            const char* heading = TextFormat("%s UNLOCKED!", vehName);
+            const char* sub = "proceeding to next level";
+            const char* count = TextFormat("in %.0f...", unlockTimer);
+            int w = GetScreenWidth();
+            DrawText(heading, (w - MeasureText(heading, 60)) / 2, GetScreenHeight()/2 - 80, 60, YELLOW);
+            DrawText(sub, (w - MeasureText(sub, 30)) / 2, GetScreenHeight()/2 + 10, 30, WHITE);
+            DrawText(count, (w - MeasureText(count, 30)) / 2, GetScreenHeight()/2 + 60, 30, LIGHTGRAY);
+            DrawText("ESC = save and go to menu", (w - MeasureText("ESC = save and go to menu", 18)) / 2, GetScreenHeight() - 50, 18, DARKGRAY);
+            EndDrawing();
+            continue;
+        }
+
+        // ---------------- WORLD RECORD NAME INPUT ----------------
+        // Appears right after the CAR unlocks. Type a name and press ENTER to
+        // save it (with the total run time) to the world record tracker.
+        if(state == STATE_NAMEINPUT){
+            // Letters, digits and backspace.
+            for(int k = KEY_A; k <= KEY_Z; k++){
+                if(IsKeyPressed(k) && nameLen < RECORD_NAME_MAX){
+                    nameInput[nameLen++] = (char)('A' + (k - KEY_A));
+                    nameInput[nameLen] = '\0';
+                }
+            }
+            for(int k = KEY_ZERO; k <= KEY_NINE; k++){
+                if(IsKeyPressed(k) && nameLen < RECORD_NAME_MAX){
+                    nameInput[nameLen++] = (char)('0' + (k - KEY_ZERO));
+                    nameInput[nameLen] = '\0';
+                }
+            }
+            if(IsKeyPressed(KEY_BACKSPACE) && nameLen > 0){
+                nameInput[--nameLen] = '\0';
+            }
+
+            if(IsKeyPressed(KEY_ENTER)){
+                if(nameLen > 0)
+                    Records_Add(records, &recordCount, MAX_RECORDS, nameInput, (int)overallTime);
+                // Drive on with the CAR (no more vehicles to unlock - free play).
+                BeginLevel(&player, &lives, &score, &hurtTimer,
+                           enemies, passengers, MAX_PASSENGERS, &intro,
+                               &moneyMultiplier, car, level, &passengerTimer,
+                               &worldwidth, &worldheight, &paused);
+                state = STATE_PLAYING;
+            }
+            // Solid black background with just the name form, same as the
+            // unlock alert.
+            BeginDrawing();
+            ClearBackground(BLACK);
+            if(IsKeyPressed(KEY_ESCAPE)){
+                // Skip recording and just drive on.
+                BeginLevel(&player, &lives, &score, &hurtTimer,
+                           enemies, passengers, MAX_PASSENGERS, &intro,
+                               &moneyMultiplier, car, level, &passengerTimer,
+                               &worldwidth, &worldheight, &paused);
+                state = STATE_PLAYING;
+                continue;
+            }
+            const char* unlockedTitle = "CAR UNLOCKED!";
+            const char* prompt = "Enter your name:";
+            int w = GetScreenWidth();
+            DrawText(unlockedTitle, (w - MeasureText(unlockedTitle, 50)) / 2, GetScreenHeight()/2 - 110, 50, GOLD);
+            DrawText(prompt, (w - MeasureText(prompt, 25)) / 2, GetScreenHeight()/2 - 30, 25, WHITE);
+            DrawText(nameInput, (w - MeasureText(nameInput, 25)) / 2, GetScreenHeight()/2 + 10, 25, YELLOW);
+            DrawText("ENTER = save record    |    ESC = skip", (w - MeasureText("ENTER = save record    |    ESC = skip", 18)) / 2, GetScreenHeight()/2 + 70, 18, DARKGRAY);
+            EndDrawing();
             continue;
         }
 
@@ -339,7 +484,7 @@ int main()
         if(IsKeyPressed(KEY_ESCAPE)) paused = !paused;
         if(paused && IsKeyPressed(KEY_M)) {
             savedVehicleId = player.veh.id;             // remember the car being driven
-            SaveProgress(money, savedVehicleId, ownedMask, 1); // still going - can continue
+            SaveProgress(money, savedVehicleId, ownedMask, completedMask, 1, level); // still going
             paused = false;
             state = STATE_TITLE;
         }
@@ -347,12 +492,16 @@ int main()
         // While paused, the whole world freezes: no input, no movement, no
         // enemies, no crashing, nothing. Only the pause/quit keys above work.
         if(!paused){
+            // The overall run clock only ticks while actually driving; pauses,
+            // the unlock alert and the name screen don't count against it.
+            overallTime += GetFrameTime();
+
             Player_HandleInput(&player);
             if(IsKeyPressed(KEY_F3)) showRoad = !showRoad;
-            Player_UpdatePosition(&player, &road);
+            Player_UpdatePosition(&player, road);
             // A passenger is picked up (up to the car's maxpassengers) or
             // dropped off at its destination each frame.
-            Passenger_Update(passengers, MAX_PASSENGERS, player.pos, player.veh.width, player.speed, &money, player.veh.maxpassengers);
+            Passenger_Update(passengers, MAX_PASSENGERS, player.pos, player.veh.width, player.speed, &money, &moneyMultiplier, player.veh.maxpassengers);
 
             // Keep a steady flow: whenever any passenger is missing (fresh
             // level or one was just dropped off), wait a moment and then place
@@ -366,7 +515,7 @@ int main()
                 if(passengerTimer <= 0.0f){
                     for(int i=0;i<MAX_PASSENGERS;i++){
                         if(!passengers[i].isspawned){
-                            Passenger_SpawnRandom(&passengers[i], &road, worldwidth, worldheight);
+                            Passenger_SpawnRandom(&passengers[i], road, worldwidth, worldheight);
                             break; // only one new passenger per tick
                         }
                     }
@@ -374,16 +523,7 @@ int main()
                 }
             }
 
-            #if !ENEMIES_DISABLED
-            // Spawn a new enemy every few seconds, up to the MAX_ENEMIES limit.
-            spawnTimer += GetFrameTime();
-            if(spawnTimer >= spawnInterval){
-                spawnTimer = 0.0f;
-                // place it at a random waypoint on the route
-                Enemy_Spawn(enemies, MAX_ENEMIES, GetRandomValue(0, routeLength-1), car[GetRandomValue(0,3)]);
-            }
-
-            // Move all the enemy cars along their route.
+            // Move every enemy car along its (looping) route.
             Enemy_Update(enemies, MAX_ENEMIES);
 
             // Count down the "hurt" window.
@@ -402,25 +542,22 @@ int main()
                     }
                 }
             }
-#endif
 
-            // Count down the level clock. When time runs out the player has
-            // finished the level - save progress and show the win screen.
-            levelTime -= GetFrameTime();
-            if(levelTime <= 0.0f){
-                levelTime = 0.0f;
-                savedVehicleId = player.veh.id;             // remember the car being driven
-                SaveProgress(money, savedVehicleId, ownedMask, 1); // won - can continue
-                state = STATE_WIN;
+            // When money reaches the NEXT vehicle's price, the level is done:
+            // stop and announce the unlock. The CAR (id 4) is the last one, so
+            // the run then ends and the player records their name + time.
+            if(player.veh.id < 4 && money >= GetVehiclePreset(player.veh.id + 1).cost){
+                unlockedVehicle = player.veh.id + 1;
+                unlockTimer = 5.0f;
+                SaveProgress(money, player.veh.id, ownedMask, completedMask, 1, level);
+                state = STATE_UNLOCK;
             }
 
-            // When lives hit zero the round is over. Progress must be saved so
-            // the player keeps the money/cars they earned, but the saved round
-            // is marked as "over" so CONTINUE is disabled (you can't resume a
-            // lost round - you restart with R instead).
+            // When lives hit zero the round is over. Progress is saved so the
+            // player keeps the money they earned.
             if(lives <= 0){
                 savedVehicleId = player.veh.id;             // remember the car being driven
-                SaveProgress(money, savedVehicleId, ownedMask, 0); // active = 0 (dead)
+                SaveProgress(money, savedVehicleId, ownedMask, completedMask, 0, level); // active = 0 (dead)
                 state = STATE_OVER;
             }
         }
@@ -433,12 +570,17 @@ int main()
         else if(player.pos.y>worldheight-((float)gameheight/2.0f)) camera.target.y=worldheight-((float)gameheight/2.0f);
         else camera.target.y=player.pos.y;
 
-        Render_DrawWorld(target, camera, maptexture, worldwidth, worldheight, passengers, MAX_PASSENGERS, player, enemies, MAX_ENEMIES, &road, showRoad);
-        Render_DrawScreen(target, gamewidth, gameheight, money, lives, passengers, MAX_PASSENGERS, paused, false, player.pos, (int)levelTime);
+        Render_DrawWorld(target, camera, map[level], worldwidth, worldheight, passengers, MAX_PASSENGERS, player, enemies, MAX_ENEMIES, road, showRoad);
+        Render_DrawScreen(target, gamewidth, gameheight, money, lives, passengers, MAX_PASSENGERS, paused, false, player.pos, (int)overallTime, moneyMultiplier);
     }
+
+    // Leaving the program always saves the money so deliveries made but not
+    // yet "banked" (no level finished, no death) don't get lost.
+    SaveProgress(money, player.veh.id, ownedMask, completedMask, 1, level);
 
     for(int i=0;i<4;i++) UnloadTexture(car[i]);
     UnloadTexture(map[0]);
+    UnloadTexture(map[1]);
     UnloadRenderTexture(target);
     CloseWindow();
 

@@ -18,43 +18,59 @@ const char* Title_VehicleName(int vehicleId)
     }
 }
 
-void Title_Init(TitleScreen* title)
+void Title_Init(TitleScreen* title, bool hasContinue)
 {
     title->index = 0;
-    title->vehicleIndex = 0;
+    title->hasContinue = hasContinue;
+}
+
+void Title_Refresh(TitleScreen* title, bool hasContinue)
+{
+    // Called while the title screen is shown so the CONTINUE entry matches the
+    // save file after a wipe or a lost run. Do NOT touch `index` here - this
+    // runs every frame, so resetting it would swallow the player's input.
+    title->hasContinue = hasContinue;
 }
 
 int Title_HandleMenu(TitleScreen* title)
 {
+    // How many items the menu has depends on whether there is a run to
+    // continue. Without one, CONTINUE is hidden and everything shifts up.
+    int count = TITLE_CHOICE_COUNT - (title->hasContinue ? 0 : 1);
+    if(title->index >= count) title->index = count - 1; // the menu just shrank
+
     // Move the highlight up and down. Loop round at the edges.
     if(IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
-        title->index = (title->index - 1 + TITLE_CHOICE_COUNT) % TITLE_CHOICE_COUNT;
+        title->index = (title->index - 1 + count) % count;
     if(IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
-        title->index = (title->index + 1) % TITLE_CHOICE_COUNT;
+        title->index = (title->index + 1) % count;
 
     // ENTER confirms the highlighted choice.
-    if(IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
-        return title->index;
+    if(IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)){
+        // The menu index is offset by one when CONTINUE is on screen, so the
+        // first visible item is CONTINUE with a run, otherwise NEW GAME.
+        if(title->hasContinue) return title->index;
+        return title->index + 1; // index 0 becomes NEW GAME, 1 QUIT
+    }
 
     return -1; // nothing confirmed yet
 }
 
-void Title_DrawMenu(TitleScreen* title, int width, int height)
+void Title_DrawMenu(TitleScreen* title, int width, int height, const RecordEntry* records, int recordCount)
 {
-    // Menu labels in the same order as the TitleChoice enum.
-    const char* labels[TITLE_CHOICE_COUNT] = {
-        "PLAY",
-        "VEHICLES",
-        "SETTINGS",
-        "QUIT"
-    };
+    // The labels are drawn in the same order as the menu index. CONTINUE is
+    // only listed when a saved run exists.
+    const char* labels[TITLE_CHOICE_COUNT] = { "CONTINUE", "NEW GAME", "QUIT" };
+    int count = TITLE_CHOICE_COUNT - (title->hasContinue ? 0 : 1);
+    int first = title->hasContinue ? 0 : 1; // index 0 is displayed only if CONTINUE exists
 
     DrawCenteredText("URBAN DRIFT", height/2 - 200, 60, WHITE, width);
 
     // Draw each option, with the highlighted one bigger and in a bright colour.
-    for(int i = 0; i < TITLE_CHOICE_COUNT; i++){
-        int y = height/2 - 80 + i*55;
-        bool selected = (i == title->index);
+    for(int d = 0; d < count; d++){
+        int i = first + d;
+        int y = height/2 - 80 + d*55;
+        bool selected = (d == title->index);
 
         Color color = selected ? YELLOW : GRAY;
 
@@ -64,74 +80,18 @@ void Title_DrawMenu(TitleScreen* title, int width, int height)
         DrawCenteredText(labels[i], y, selected ? 35 : 30, color, width);
     }
 
-    DrawCenteredText("Use W/S or arrows to move, ENTER to select", height - 40, 16, DARKGRAY, width);
-}
-
-int Title_HandleVehicles(TitleScreen* title)
-{
-    // Move between the four vehicles (ids 1..4).
-    if(IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A))
-        title->vehicleIndex = (title->vehicleIndex - 1 + 4) % 4;
-    if(IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D))
-        title->vehicleIndex = (title->vehicleIndex + 1) % 4;
-
-    // ENTER means "picked this car" (caller decides buy vs drive), ESC backs out.
-    if(IsKeyPressed(KEY_ENTER)) return VEHICLE_CHOOSE;
-    if(IsKeyPressed(KEY_ESCAPE)) return VEHICLE_BACK;
-
-    return VEHICLE_BROWSE; // still browsing
-}
-
-void Title_DrawVehicles(TitleScreen* title, int width, int height, Texture2D* carTextures, int currentVehicleId, int money, int ownedMask)
-{
-    DrawCenteredText("CHOOSE YOUR VEHICLE", 60, 45, WHITE, width);
-
-    // The highlighted vehicle (index 0..3 maps to id 1..4).
-    int vehicleId = title->vehicleIndex + 1;
-    Texture2D tex = carTextures[title->vehicleIndex];
-
-    // A SMALL preview of the car, centred near the middle of the screen.
-    // Every car is scaled to the SAME preview height, so they all look the
-    // same size even though the image files have different proportions.
-    float targetHeight = 130.0f;
-    float scale = targetHeight / (float)tex.height;
-    float texw = tex.width*scale;
-    float texh = tex.height*scale;
-    Rectangle src = {0.0f, 0.0f, (float)tex.width, (float)tex.height};
-    Rectangle dst = {(width-texw)/2.0f, height/2 - texh - 40.0f, texw, texh};
-    DrawTexturePro(tex, src, dst, (Vector2){0.0f,0.0f}, 0.0f, WHITE);
-
-    // Work out the car's name and status (locked, owned, or the current car).
-    const char* name = Title_VehicleName(vehicleId);
-    bool owned   = (ownedMask & (1 << (vehicleId - 1))) != 0;
-    bool current = (vehicleId == currentVehicleId);
-
-    Color statusColor = WHITE;
-    const char* status;
-    if(current){ status = "(CURRENT)";            statusColor = YELLOW; }
-    else if(owned){ status = "OWNED - ENTER to drive"; statusColor = GREEN; }
-    else { status = TextFormat("LOCKED - $%d", GetVehiclePreset(vehicleId).cost); statusColor = RED; }
-
-    DrawCenteredText(name,   height/2 + 10, 30, statusColor, width);
-    DrawCenteredText(status, height/2 + 50, 25, statusColor, width);
-
-    // If it is still locked, say whether the player can afford it.
-    if(!owned && !current){
-        int cost = GetVehiclePreset(vehicleId).cost;
-        if(money >= cost)
-            DrawCenteredText("Press ENTER to buy", height/2 + 85, 18, GOLD, width);
-        else
-            DrawCenteredText("Not enough money", height/2 + 85, 18, DARKGRAY, width);
+    // The world record tracker: each entry is a name and the time it took to
+    // unlock the CAR. Drawn small below the menu.
+    if(recordCount > 0){
+        DrawCenteredText("WORLD RECORDS", height/2 + 130, 20, GOLD, width);
+        for(int i = 0; i < recordCount && i < 5; i++){
+            const char* line = TextFormat("%s  -  %d:%02d",
+                                          records[i].name,
+                                          records[i].seconds / 60,
+                                          records[i].seconds % 60);
+            DrawCenteredText(line, height/2 + 160 + i*25, 18, LIGHTGRAY, width);
+        }
     }
 
-    // Show the player's available money in the top-right corner.
-    const char* cash = TextFormat("MONEY: $%d", money);
-    int cashWidth = MeasureText(cash, 25);
-    DrawText(cash, width - cashWidth - 20, 20, 25, GOLD);
-
-    // Left/right arrows and the controls hint.
-    DrawText("<", width/2 - 260, height/2 - 60, 40, GRAY);
-    DrawText(">", width/2 + 230, height/2 - 60, 40, GRAY);
-    DrawCenteredText("A/D or arrows to change, ENTER to buy or drive, ESC to go back",
-                     height - 40, 16, DARKGRAY, width);
+    DrawCenteredText("Use W/S or arrows to move, ENTER to select", height - 40, 16, DARKGRAY, width);
 }

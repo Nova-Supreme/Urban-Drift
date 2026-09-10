@@ -14,8 +14,10 @@
 //     as the car still has room (maxCarrying = the vehicle's maxpassengers), and
 //   - drops off a carried passenger when the player stops at their destination,
 //     giving money each time.
+// The money multiplier grows by 0.1 with every delivery (so the first drop-off
+// earns $100, the next $110, then $120...) until the round is restarted.
 // Returns how many passengers are currently riding in the car.
-int Passenger_Update(Passenger* passengers, int count, Vector2 playerpos, float playerwidth, float playerspeed, int* money, int maxCarrying);
+int Passenger_Update(Passenger* passengers, int count, Vector2 playerpos, float playerwidth, float playerspeed, int* money, float* moneyMultiplier, int maxCarrying);
 
 // Places a brand-new passenger at a random point on the road, with a random
 // destination (also on the road) far enough away to be a real trip.

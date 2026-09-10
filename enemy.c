@@ -1,17 +1,34 @@
 #include "enemy.h"
+#include "cars.h"
 #include <math.h>
 
-// The route the enemy cars drive along. The points are placed down the CENTRE
-// of the road pieces defined in road.c, so every one of them is guaranteed to
-// be on the road. Enemies simply drive from one waypoint to the next.
+// The route the tutorial car drives: a smooth rectangle loop around the long
+// horizontal road (the bottom road across map0), keeping to the LEFT-hand
+// lanes. Going right (east) is the TOP lane (kept a touch higher), going left
+// (west) is the BOTTOM lane. Each end of the road is a curved U-turn so the
+// car turns smoothly instead of snapping at a right angle.
+// The U-turn waypoints are spaced ~9px apart (~22.5 degrees of arc at the
+// east end, 30 at the west) - at the car's 1.2px/frame speed that lets the
+// eased turning keep up, so the curve comes out round.
+// NOTE: values tuned by hand - adjust the lane y's freely.
 static const Vector2 WAYPOINTS[] = {
-    { 480, 239 }, // top of the central road
-    { 495, 386 }, // ...down the central road...
-    { 510, 576 },
-    { 511, 748 },
-    { 586, 885 },
-    { 507, 1018 }, // bottom of the central road
-    { 1082, 1131 } // across the bottom horizontal road
+    {  520, 1095 }, // 0: west end, top lane (eastbound) - drive east
+    { 1693.5, 1095 }, // 1: east end of the top lane
+    { 1702.1, 1096.7 }, // 2: ease off the top lane (east U-turn start)
+    { 1709.4, 1101.6 }, // 3
+    { 1714.3, 1108.9 }, // 4
+    { 1716.0, 1117.5 }, // 5: middle of the east U-turn (out to the road edge)
+    { 1714.3, 1126.1 }, // 6
+    { 1709.4, 1133.4 }, // 7
+    { 1702.1, 1138.3 }, // 8: ease onto the bottom lane
+    { 1693.5, 1140 }, // 9: east end of the bottom lane
+    {  504, 1140 },  // 10: west end of the bottom lane - drive west
+    {  495.5, 1137.7 }, // 11: (west U-turn start)
+    {  489.3, 1131.5 }, // 12
+    {  487, 1123 },  // 13: middle of the west U-turn (out to the road edge)
+    {  489.3, 1114.5 }, // 14
+    {  495.5, 1108.3 }, // 15: (west U-turn end)
+    {  504, 1106 }   // 16: back on the top lane, west end (merges onto waypoint 0)
 };
 
 #define WAYPOINT_COUNT (sizeof(WAYPOINTS) / sizeof(WAYPOINTS[0]))
@@ -36,9 +53,10 @@ void Enemy_Spawn(Enemy* enemies, int max, int spawnpoint, Texture2D texture)
         enemies[i].active    = true;
         enemies[i].pos       = WAYPOINTS[spawnpoint];
         enemies[i].rotation  = 0.0f;
-        enemies[i].speed     = 0.7f;
+        // EVERY enemy drives at the rickshaw's constant top speed, so traffic
+        // never catches the player - you can keep up but still must steer.
+        enemies[i].speed     = GetVehiclePreset(1).maxspeed;
         enemies[i].waypoint  = (spawnpoint + 1) % WAYPOINT_COUNT;
-        enemies[i].direction = 1;
         enemies[i].texture   = texture;
         enemies[i].width     = 30.0f;
         enemies[i].height    = 50.0f;
@@ -62,16 +80,9 @@ void Enemy_Update(Enemy* enemies, int max)
 
         if (distance < WAYPOINT_REACH)
         {
-            // We arrived. Move to the next waypoint in the current direction.
-            enemies[i].waypoint += enemies[i].direction;
-
-            // If we passed an end of the route, turn around and go back the
-            // other way (this keeps the car on-road, patrolling up and down).
-            if (enemies[i].waypoint < 0 || enemies[i].waypoint >= (int)WAYPOINT_COUNT)
-            {
-                enemies[i].direction = -enemies[i].direction;
-                enemies[i].waypoint += enemies[i].direction;
-            }
+            // We arrived. Move to the next waypoint; the route wraps around at
+            // the end so the car loops forever (waypoint 3 -> waypoint 0).
+            enemies[i].waypoint = (enemies[i].waypoint + 1) % WAYPOINT_COUNT;
         }
         else
         {
@@ -80,8 +91,20 @@ void Enemy_Update(Enemy* enemies, int max)
             enemies[i].pos.x += (dx / distance) * step;
             enemies[i].pos.y += (dy / distance) * step;
 
-            // Point the car in the direction it is driving.
-            enemies[i].rotation = atan2f(dx, -dy) * RAD2DEG;
+            // Which way the car SHOULD be pointing (towards the next waypoint).
+            float targetRotation = atan2f(dx, -dy) * RAD2DEG;
+
+            // Ease the car's facing towards that angle rather than snapping,
+            // so corners look like a smooth turn, not an instant right angle.
+            float turnDiff = targetRotation - enemies[i].rotation;
+            while (turnDiff >  180.0f) turnDiff -= 360.0f;
+            while (turnDiff < -180.0f) turnDiff += 360.0f;
+
+            float turnSpeed = 4.0f; // degrees per frame
+            if      (turnDiff >  turnSpeed) turnDiff =  turnSpeed;
+            else if (turnDiff < -turnSpeed) turnDiff = -turnSpeed;
+
+            enemies[i].rotation += turnDiff;
         }
     }
 }

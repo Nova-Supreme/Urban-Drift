@@ -1,7 +1,8 @@
 #include "road.h"
 #include <math.h>
 
-// Every number below is in WORLD space (the 2048 x 1536 world the car drives around in), NOT image space. 
+// Every number below is in WORLD space (map1's world is 3072 x 2304, map0's is
+// 2048 x 1536 - the car drives around these rectangles), NOT image space. 
 
 void Road_Load(RoadNetwork* network)
 {
@@ -24,17 +25,71 @@ void Road_Load(RoadNetwork* network)
     network->segs[network->count++] = (RoadSegment){
         ROAD_SEMI, {0,0,0,0}, (Vector2){ 541, 715 }, 100.0f, 55.0f, 180.0f };
     network->segs[network->count++] = (RoadSegment){
-        ROAD_RECT, (Rectangle){ 545, 752, 59, 63 }, {0,0}, 0.0f };
+        ROAD_RECT, (Rectangle){ 545, 747, 59, 68 }, {0,0}, 0.0f };
     network->segs[network->count++] = (RoadSegment){
-        ROAD_SEMI, {0,0,0,0}, (Vector2){ 604, 863 }, 110.0f, -90.0f, 90.0f };
-
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 604, 863 }, 115.0f, -125.0f, 120.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 500, 915, 105, 63 }, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 500, 1035 }, 120.0f, 60.0f, 300.0f };
 
 
     network->segs[network->count++] = (RoadSegment){
         ROAD_RECT, (Rectangle){ 487, 1091, 1229, 64 }, {0,0}, 0.0f };
 
-    // network->segs[network->count++] = (RoadSegment){
-    //     ROAD_RECT, (Rectangle){ 1696, 1118, 54, 152 }, {0,0}, 0.0f, 0.0f, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 1697, 1190 }, 99.0f, -120.0f, 90.0f };
+}
+
+void Road_LoadMap1(RoadNetwork* network)
+{
+    // map1.png is 1363 x 1154 pixels inside a world of 3072 x 2304, so a
+    // position at image pixel (px, py) sits at world:
+    //   worldX = px * 3072/1363  (about px * 2.25)
+    //   worldY = py * 2304/1154  (about py * 2.00)
+    //
+    // Layout: ONE big rectangular circuit around the town:
+    //   - a long horizontal road along the bottom (the "trunk"),
+    //   - a matching horizontal road along the top,
+    //   - a vertical road up the LEFT side and one up the RIGHT side,
+    // and each corner is a full circle so cars turn smoothly.
+    // At each corner two roads overlap, so the circle lets you swing through
+    // the turn without leaving the asphalt.
+    network->count = 0;
+
+    // The thick bottom road, running right across the whole map.
+    //     img x 100..1340 at img y ~584  (world x 225..3010 at world y ~1168)
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 225, 1150, 2785, 56 }, {0,0}, 0.0f };
+
+    // The upper horizontal road (a second stretch of road further north).
+    //     img x ~260..1230 at img y ~336  (world x ~585..2770 at world y 672)
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 585, 654, 2185, 56 }, {0,0}, 0.0f };
+
+    // The vertical road up the left side (img x ~500: world x 1125).
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 1098, 560, 54, 715 }, {0,0}, 0.0f };
+
+    // The vertical road up the right side (img x ~1230: world x 2770).
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 2743, 560, 54, 715 }, {0,0}, 0.0f };
+
+    // Corner turning-circles. The centre sits where the two roads cross, a bit
+    // past the end of each road, and 110px radius makes the corner wide enough
+    // to turn through comfortably at speed.
+    // top-left
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 1125, 625 }, 110.0f };
+    // top-right
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 2770, 625 }, 110.0f };
+    // bottom-left
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 1125, 1295 }, 110.0f };
+    // bottom-right
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 2770, 1295 }, 110.0f };
 }
 
 bool Road_Contains(RoadNetwork* network, Vector2 point)

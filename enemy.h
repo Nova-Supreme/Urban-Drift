@@ -13,17 +13,16 @@ typedef struct {
     float rotation;  // which way the car is pointing (used to face its texture)
     float speed;     // how fast it drives (world units per frame)
     int   waypoint;  // which waypoint in the route it is heading towards
-    int   direction; // +1 = forward through the route, -1 = backward (ping-pong)
     Texture2D texture;
     float width;     // size of the enemy car, used for drawing and collisions
     float height;
 } Enemy;
 
-// Turns on a previously empty enemy slot, placing the car at `spawnpoint`.
+// Places a car in the first empty slot at the given waypoint, heading forward
+// along the route from there. The route loops forever (little round-trip).
 void Enemy_Spawn(Enemy* enemies, int max, int spawnpoint, Texture2D texture);
 
-// Moves every active enemy one step along its route, reversing direction
-// when it reaches either end of the route (ping-pong travel).
+// Moves every active enemy one step along its (looping) route.
 void Enemy_Update(Enemy* enemies, int max);
 
 // The number of waypoints in the enemy route.
