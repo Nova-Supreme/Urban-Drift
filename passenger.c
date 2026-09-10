@@ -9,7 +9,7 @@ static int CarriedCount(Passenger* passengers, int count)
     return carried;
 }
 
-int Passenger_Update(Passenger* passengers, int count, Vector2 playerpos, float playerwidth, float playerspeed, int* money, int maxCarrying)
+int Passenger_Update(Passenger* passengers, int count, Vector2 playerpos, float playerwidth, float playerspeed, int* money, float* moneyMultiplier, int maxCarrying)
 {
     int carried = CarriedCount(passengers, count);
 
@@ -32,7 +32,10 @@ int Passenger_Update(Passenger* passengers, int count, Vector2 playerpos, float 
             if(CheckCollisionCircles(playerpos, playerwidth/3.0f, p->destination, p->interactionradius) && playerspeed==0.0f){
                 p->ispickedup = false;
                 p->isspawned = false; // gone - the game will spawn a new one
-                *money += 100;
+                // Each drop-off earns $100 times the current money multiplier,
+                // then the multiplier steps up 0.1 for the next delivery.
+                *money += (int)(100.0f * (*moneyMultiplier));
+                *moneyMultiplier += 0.1f;
                 carried--;
             }
         }

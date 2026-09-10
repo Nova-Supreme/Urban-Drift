@@ -33,6 +33,9 @@ typedef struct {
 // Fills `network` with the road layout for map0. Call this once at startup.
 void Road_Load(RoadNetwork* network);
 
+// Fills `network` with the road layout for map1 (the second level).
+void Road_LoadMap1(RoadNetwork* network);
+
 // Returns true if `point` sits on top of any road piece (i.e. is on the road).
 bool Road_Contains(RoadNetwork* network, Vector2 point);
 

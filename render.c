@@ -1,13 +1,6 @@
 #include "render.h"
 #include <math.h>
 
-// Draws one line of text centred on the screen width.
-static void DrawCenteredText(const char* text, int y, int size, Color color, int width)
-{
-    int textWidth = MeasureText(text, size);
-    DrawText(text, (width - textWidth) / 2, y, size, color);
-}
-
 // Draws one line of HUD text with a dark box behind it so it stays readable
 // over any part of the map.
 static void DrawHudText(int x, int y, int size, const char* text, Color color)
@@ -93,7 +86,7 @@ void Render_DrawWorld(RenderTexture2D target, Camera2D camera, Texture2D maptext
     EndTextureMode();
 }
 
-void Render_DrawScreen(RenderTexture2D target, int gamewidth, int gameheight, int money, int lives, Passenger* passengers, int passengerCount, bool paused, bool gameover, Vector2 playerpos, int levelSeconds)
+void Render_DrawScreen(RenderTexture2D target, int gamewidth, int gameheight, int money, int lives, Passenger* passengers, int passengerCount, bool paused, bool gameover, Vector2 playerpos, int overallSeconds, float moneyMultiplier)
 {
     BeginDrawing();
         ClearBackground(BLACK);
@@ -114,13 +107,17 @@ void Render_DrawScreen(RenderTexture2D target, int gamewidth, int gameheight, in
             0.0f,
             WHITE);
 
-        // HUD: money and lives top-left, the level's time left below them. The
-        // player's coordinates sit top-right, with every carried passenger's
-        // destination coordinates listed right underneath. Each has a dark box.
+        // HUD: money and lives top-left, the total run time below them, and the fare
+        // multiplier under that (it climbs 0.1 with every delivery, back to 1.0
+        // on each new round). The player's coordinates sit top-right, with
+        // every carried passenger's destination coordinates listed right
+        // underneath. Each has a dark box.
         DrawHudText(20, 20, 30, TextFormat("MONEY:%04d", money), BLUE);
         DrawHudText(20, 60, 30, TextFormat("LIVES:%d", lives), RED);
-        // Show the level clock as minutes:seconds (e.g. 4:37).
-        DrawHudText(20, 100, 30, TextFormat("TIME:%d:%02d", levelSeconds/60, levelSeconds%60), GOLD);
+        // The overall run clock as minutes:seconds (runs across whole levels).
+        DrawHudText(20, 100, 30, TextFormat("TIME:%d:%02d", overallSeconds/60, overallSeconds%60), GOLD);
+        // Show the current fare multiplier, e.g. "FARE:x2.4".
+        DrawHudText(20, 140, 22, TextFormat("FARE:x%.1f", moneyMultiplier), GREEN);
 
         // Top-right: the player's own position, then a line for each passenger
         // currently being carried showing their destination coordinates.
@@ -172,47 +169,4 @@ void Render_DrawScreen(RenderTexture2D target, int gamewidth, int gameheight, in
     EndDrawing();
 }
 
-// Draws the "LEVEL COMPLETE" screen: how much money the player earned this
-// level (money now minus money at the start of the level).
-void Render_DrawWin(int gamewidth, int gameheight, int money, int levelStartMoney)
-{
-    float windowwidth = GetScreenWidth();
-    float windowheight = GetScreenHeight();
 
-    BeginDrawing();
-        ClearBackground(BLACK);
-        DrawRectangle(0,0,(int)windowwidth,(int)windowheight,(Color){0,0,0,200});
-
-        const char* title="LEVEL COMPLETE!";
-        int titlewidth=MeasureText(title,60);
-        DrawText(title,(int)((windowwidth-titlewidth)/2.0f),(int)(windowheight/2.0f-100),60,GREEN);
-
-        int earned = money - levelStartMoney;
-        if(earned < 0) earned = 0;
-        const char* result=TextFormat("You earned $%d this level",earned);
-        int resultwidth=MeasureText(result,30);
-        DrawText(result,(int)((windowwidth-resultwidth)/2.0f),(int)(windowheight/2.0f-10),30,WHITE);
-
-        const char* prompt="Press N for next level   |   ESC for menu";
-        int promptwidth=MeasureText(prompt,25);
-        DrawText(prompt,(int)((windowwidth-promptwidth)/2.0f),(int)(windowheight/2.0f+60),25,GRAY);
-    EndDrawing();
-}
-
-// Draws the settings menu. Before the wipe is confirmed it just shows the one
-// option; after ENTER, `confirming` makes it ask for a Y/N confirmation.
-void Render_DrawSettings(int width, int height, bool confirming)
-{
-    DrawCenteredText("SETTINGS", height/2 - 150, 60, WHITE, width);
-
-    if(!confirming){
-        DrawCenteredText("WIPE ALL DATA  (delete save, start fresh)", height/2 - 40, 30, RED, width);
-        DrawCenteredText("Press ENTER to wipe", height/2 + 10, 20, GRAY, width);
-        DrawCenteredText("ESC to go back", height/2 + 50, 20, DARKGRAY, width);
-    }
-    else{
-        DrawCenteredText("Wipe ALL saved data?", height/2 - 60, 35, YELLOW, width);
-        DrawCenteredText("This deletes money and owned cars and cannot be undone.", height/2 - 10, 18, GRAY, width);
-        DrawCenteredText("Y = yes, wipe it all   |   N or ESC = no", height/2 + 40, 22, WHITE, width);
-    }
-}

@@ -4,9 +4,9 @@
 // The name of the file our progress is stored in (created in the game folder).
 #define SAVE_FILE "save.dat"
 
-// A brand-new player owns just the starter car (the rickshaw, id 1) and has
-// not played a round yet, so there is nothing active to continue.
-static const SaveData DEFAULT_SAVE = { 0, 1, 1, 0 };
+// A brand-new player owns just the starter car (the rickshaw, id 1), has not
+// played a round yet (nothing active to continue), and has not finished any map.
+static const SaveData DEFAULT_SAVE = { 0, 1, 1, 0, 0, 0 };
 
 bool Save_Exists(void)
 {
@@ -24,13 +24,17 @@ bool Save_Load(SaveData* data)
         return false;
     }
 
-    // The file is four numbers, one per line: money, vehicle id, owned mask,
-    // and whether the round can still be continued (active).
+    // The file holds: money, vehicle id, owned mask, whether the round can
+    // still be continued (active), which maps have been completed (mask) and
+    // which map the round was on (level). Older saves are shorter - anything
+    // missing falls back to safe defaults below.
     int money = 0;
     int vehicle = 0;
     int mask = 0;
     int active = 0;
-    int items = fscanf(file, "%d\n%d\n%d\n%d", &money, &vehicle, &mask, &active);
+    int completed = 0;
+    int level = 0;
+    int items = fscanf(file, "%d\n%d\n%d\n%d\n%d\n%d", &money, &vehicle, &mask, &active, &completed, &level);
     fclose(file);
 
     // Old save files only had the first three numbers; treat those as a run
@@ -47,11 +51,15 @@ bool Save_Load(SaveData* data)
     if(vehicle < 1 || vehicle > 4) vehicle = 1;
     if(mask < 1)   mask = 1; // the starter car is always owned
     if(active != 0 && active != 1) active = 1;
+    if(completed < 0) completed = 0; // nobody has finished any map yet
+    if(level < 0 || level > 1) level = 0;
 
     data->money = money;
     data->savedVehicleId = vehicle;
     data->ownedMask = mask;
     data->active = active;
+    data->completedMask = completed;
+    data->level = level;
     return true;
 }
 
@@ -60,7 +68,7 @@ void Save_Write(SaveData data, int active)
     FILE* file = fopen(SAVE_FILE, "w"); // "w" creates/overwrites the file
     if(file == NULL) return;            // if it cannot be opened, do nothing
 
-    fprintf(file, "%d\n%d\n%d\n%d\n", data.money, data.savedVehicleId, data.ownedMask, active);
+    fprintf(file, "%d\n%d\n%d\n%d\n%d\n%d\n", data.money, data.savedVehicleId, data.ownedMask, active, data.completedMask, data.level);
     fclose(file);
 }
 

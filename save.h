@@ -9,11 +9,15 @@
 //   savedVehicleId - which car the last round was driving with (for CONTINUE)
 //   ownedMask      - which cars have been bought (bit (id-1) is 1 = owned)
 //   active         - 1 if the last round can be continued, 0 if it was lost
+//   completedMask  - which maps have been finished once (bit (level) = done)
+//   level          - which map the last round was on (0 or 1, for CONTINUE)
 typedef struct {
     int money;
     int savedVehicleId;
     int ownedMask;
     int active;
+    int completedMask;
+    int level;
 } SaveData;
 
 // Returns true if a saved file already exists on disk.
@@ -26,8 +30,8 @@ bool Save_Load(SaveData* data);
 // whether the round can be CONTINUEd (1) or was lost (0).
 void Save_Write(SaveData data, int active);
 
-// Deletes the save file entirely (used by the "wipe all data" setting so the
-// player can start completely fresh).
+// Deletes the save file entirely (used by NEW GAME so the player returns to a
+// blank slate).
 void Save_Delete(void);
 
 #endif
