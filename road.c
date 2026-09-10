@@ -56,40 +56,74 @@ void Road_LoadMap1(RoadNetwork* network)
     // At each corner two roads overlap, so the circle lets you swing through
     // the turn without leaving the asphalt.
     network->count = 0;
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 430, 223, 565,60 }, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 400, 780, 678 ,60}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 1040, 350, 85 ,1560}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 329, 340 , 78 ,1580 }, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 400, 1410, 678 ,60}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 460, 1960, 540 ,65}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 1100, 1095, 1480, 68}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 2202, 777, 75 ,780}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 2305, 650, 350,60}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 2325, 1602, 295,70}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 2670, 564, 65,50}, {0,0}, 0.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_RECT, (Rectangle){ 2670, 1665, 65,120}, {0,0}, 0.0f };
 
-    // The thick bottom road, running right across the whole map.
-    //     img x 100..1340 at img y ~584  (world x 225..3010 at world y ~1168)
-    network->segs[network->count++] = (RoadSegment){
-        ROAD_RECT, (Rectangle){ 225, 1150, 2785, 56 }, {0,0}, 0.0f };
 
-    // The upper horizontal road (a second stretch of road further north).
-    //     img x ~260..1230 at img y ~336  (world x ~585..2770 at world y 672)
     network->segs[network->count++] = (RoadSegment){
-        ROAD_RECT, (Rectangle){ 585, 654, 2185, 56 }, {0,0}, 0.0f };
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 2303, 752 },  100.0f, 130.0f, 300.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 1017, 333 },  110.0f, 60.0f, -120.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 464, 810 },  110.0f, 130.0f, 225.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 995, 810 },  110.0f, -50.0f, 50.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 995, 1440 },  110.0f, -50.0f, 55.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 464, 1440 },  110.0f, 130.0f, 225.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 440, 1923 },  105.0f, 40.0f, 230.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 1017, 1918 },  110.0f, -30.0f, 140.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 1180, 1126 },  110.0f, 130.0f, 225.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 442, 333 },  110.0f, 120.0f, 300.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 1017, 333 },  110.0f, -120.0f, 60.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 2653, 617 },  90.0f, -30.0f, 120.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 2315, 1565 },  110.0f, 60.0f, 240.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 2646, 1700 },  100.0f, -120.0f, 30.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 2345, 1126 },  110.0f, 130.0f, 225.0f };
+    network->segs[network->count++] = (RoadSegment){
+        ROAD_SEMI, {0,0,0,0}, (Vector2){ 2135, 1126 },  110.0f, -45.0f, 50.0f };
+}
 
-    // The vertical road up the left side (img x ~500: world x 1125).
+void Road_LoadMap2(RoadNetwork* network)
+{
+    // Ponytail: map2 is the FIRST map played but its roads are still being
+    // drawn. Until they are, the whole world counts as drivable road so the
+    // player can test-drive on it. Replace with real roads when the art is in.
+    network->count = 0;
     network->segs[network->count++] = (RoadSegment){
-        ROAD_RECT, (Rectangle){ 1098, 560, 54, 715 }, {0,0}, 0.0f };
-
-    // The vertical road up the right side (img x ~1230: world x 2770).
-    network->segs[network->count++] = (RoadSegment){
-        ROAD_RECT, (Rectangle){ 2743, 560, 54, 715 }, {0,0}, 0.0f };
-
-    // Corner turning-circles. The centre sits where the two roads cross, a bit
-    // past the end of each road, and 110px radius makes the corner wide enough
-    // to turn through comfortably at speed.
-    // top-left
-    network->segs[network->count++] = (RoadSegment){
-        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 1125, 625 }, 110.0f };
-    // top-right
-    network->segs[network->count++] = (RoadSegment){
-        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 2770, 625 }, 110.0f };
-    // bottom-left
-    network->segs[network->count++] = (RoadSegment){
-        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 1125, 1295 }, 110.0f };
-    // bottom-right
-    network->segs[network->count++] = (RoadSegment){
-        ROAD_CIRCLE, {0,0,0,0}, (Vector2){ 2770, 1295 }, 110.0f };
+        ROAD_RECT, (Rectangle){ 0, 0, 1536, 1152 }, {0,0}, 0.0f };
 }
 
 bool Road_Contains(RoadNetwork* network, Vector2 point)

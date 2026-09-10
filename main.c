@@ -19,7 +19,8 @@ typedef enum {
     STATE_PLAYING,     // driving round
     STATE_OVER,        // the "game over" screen
     STATE_UNLOCK,      // "(vehicle) unlocked!" alert + 5 second countdown
-    STATE_NAMEINPUT   // typing a name for the world record (after the CAR)
+    STATE_ENDING,      // the ending cutscene (ending.gif, played once, after the CAR)
+    STATE_NAMEINPUT   // typing a name for the high score (after the CAR)
 } GameState;
 
 // The map image is stretched onto a rectangle of this size. map1 is made
@@ -29,6 +30,14 @@ typedef enum {
 #define WORLD_H0 1536.0f
 #define WORLD_W1 3072.0f
 #define WORLD_H1 2304.0f
+#define WORLD_W2 1536.0f
+#define WORLD_H2 1152.0f
+
+// The ending cutscene was split from assets/ending.gif into one PNG per
+// frame (assets/ending/f0000.png ...). ENDING_FRAME_TIME is the gif's average
+// frame delay, so it replays at the speed it was made with.
+#define ENDING_FRAMES 104
+#define ENDING_FRAME_TIME 0.06f
 
 // Switches the player's car to `vehicleId` and swaps its picture.
 static void SetVehicle(Player* player, Texture2D* carTextures, int vehicleId)
@@ -47,15 +56,24 @@ static void ResetRun(Player* player, int* lives, int* score,
                      Passenger* passengers, int passengerCount,
                      Intro* intro, float* moneyMultiplier, int level)
 {
-    // Spawn the car ON the level's own road, pointing along it.
-    //   map0 starts at the west end of its single horizontal road;
-    //   map1 starts at the west end of the big bottom trunk road.
-    if(level == 0)
-        player->pos = (Vector2){170.0f,350.0f};
-    else
-        player->pos = (Vector2){600.0f,1178.0f};
-    player->rotation = 90.0f;
-    player->targetRotation = 90.0f;
+    // Spawn the car ON the level's own road, pointing along it. map0 spawns at
+    // the west end of its central circle road; map2 and map1 both start on an
+    // upper-right stretch of road, facing left down it.
+    if(level == 0){     // map2 (the first map, smallest world)
+        player->pos = (Vector2){1250.0f, 350.0f};
+        player->rotation = 270.0f; // facing left (west)
+        player->targetRotation = 270.0f;
+    }
+    else if(level == 1){ // map0 (the tutorial map)
+        player->pos = (Vector2){170.0f, 350.0f};
+        player->rotation = 90.0f;
+        player->targetRotation = 90.0f;
+    }
+    else{               // map1 (the hand-drawn town map)
+        player->pos = (Vector2){2500.0f, 700.0f};
+        player->rotation = 270.0f; // facing left (west)
+        player->targetRotation = 270.0f;
+    }
     player->speed = 0.0f;
 
     *lives = 5;
@@ -82,9 +100,12 @@ static void ResetRun(Player* player, int* lives, int* score,
 
 // Stores the world (map-image stretch) dimensions for the given level. Each
 // level switch must call this before drawing so the map fills its own size.
+// Map2 (the first map, level 0) is the smallest world; map1 (level 2) is the
+// biggest.
 static void SetWorldSize(int level, float* worldwidth, float* worldheight)
 {
-    if(level == 0){ *worldwidth = WORLD_W0; *worldheight = WORLD_H0; }
+    if(level == 0){ *worldwidth = WORLD_W2; *worldheight = WORLD_H2; }
+    else if(level == 1){ *worldwidth = WORLD_W0; *worldheight = WORLD_H0; }
     else          { *worldwidth = WORLD_W1; *worldheight = WORLD_H1; }
 }
 
@@ -94,11 +115,11 @@ static void SetWorldSize(int level, float* worldwidth, float* worldheight)
 // their own cars.
 static void StartTraffic(Enemy* enemies, Texture2D* carTextures, int level)
 {
-    // Tutorial level (map0): exactly ONE car on the long horizontal road.
-    // It starts at waypoint 0 (the west end) and loops around the road.
-    // Routes are hand-tuned per map in enemy.c - map1 has no traffic yet,
-    // so it only starts cars when level == 0.
-    if(level == 0)
+    // Tutorial map (map0 = level 1): exactly ONE car on the long horizontal
+    // road. It starts at waypoint 0 (the west end) and loops around the road.
+    // Routes are hand-tuned per map in enemy.c - map2 and map1 have no
+    // traffic yet, so it only starts cars when level == 1.
+    if(level == 1)
         Enemy_Spawn(enemies, MAX_ENEMIES, 0, carTextures[2]);
 }
 
@@ -143,8 +164,9 @@ static void BeginLevel(Player* player, int* lives, int* score, float* hurtTimer,
     *paused = false;
 }
 
-// Starts a run: fresh games begin on map0 in the rickshaw with a reset clock;
+// Starts a run: fresh games begin on map2 in the rickshaw with a reset clock;
 // CONTINUE restarts the level that was being played when the game was quit.
+// The menu picks the map (level 0 = map2, 1 = map0, 2 = map1).
 // Returns the level that was started, so the caller can point the road and
 // camera at the right map.
 static int StartRun(Player* player, Texture2D* car, int level, int vehicleId,
@@ -154,8 +176,8 @@ static int StartRun(Player* player, Texture2D* car, int level, int vehicleId,
                     float* passengerTimer, float* worldwidth, float* worldheight,
                     bool* paused)
 {
-    level = 1; // map0 is DISABLED for now while its roads are being reworked;
-               // every round (fresh, continue or unlock) happens on map1.
+    if(level < 0) level = 0;
+    if(level > 2) level = 2;
     if(vehicleId < 1 || vehicleId > 4) vehicleId = 1;
     SetVehicle(player, car, vehicleId);
     if(freshRun) *overallTime = 0.0f; // a fresh run always times from zero
@@ -184,9 +206,22 @@ int main()
     car[2]=LoadTexture("assets/auto.png");
     car[3]=LoadTexture("assets/car.png");
 
-    Texture2D map[5];
-    map[0]=LoadTexture("assets/map0.png");
-    map[1]=LoadTexture("assets/map1.png");
+    Texture2D map[3];
+    map[0]=LoadTexture("assets/map2.png");
+    map[1]=LoadTexture("assets/map0.png");
+    map[2]=LoadTexture("assets/map1.png");
+
+    // ---- The ending cutscene (ending.gif, split into one PNG per frame) ----
+    // Plays exactly once, right after the CAR unlock alert, then the player
+    // types their name. The frames live in assets/ending/ as f0000.png...
+    Texture2D endingFrames[ENDING_FRAMES];
+    char framePath[64];
+    for(int i = 0; i < ENDING_FRAMES; i++){
+        snprintf(framePath, sizeof framePath, "assets/ending/f%04d.png", i);
+        endingFrames[i] = LoadTexture(framePath);
+    }
+    int endingFrame = 0;    // which ending.png frame is on screen
+    float endingTimer = 0.0f; // seconds on the current frame
 
     // ---- The player's car (starts as the rickshaw) ----
     Player player = {0};
@@ -195,7 +230,7 @@ int main()
     // ---- The world (map, camera, road, enemies) ----
     float worldwidth;
     float worldheight;
-    SetWorldSize(0, &worldwidth, &worldheight); // map0's size before any level is chosen
+    SetWorldSize(0, &worldwidth, &worldheight); // map2's size before any level is chosen
 
     Camera2D camera={0};
     camera.target=player.pos;
@@ -204,11 +239,12 @@ int main()
     camera.zoom=1.0f;
 
     // One road layout per level; `road` points at the current level's one.
-    RoadNetwork roadNets[2];
-    Road_Load(&roadNets[0]);
-    Road_LoadMap1(&roadNets[1]);
+    RoadNetwork roadNets[3];
+    Road_LoadMap2(&roadNets[0]);
+    Road_Load(&roadNets[1]);
+    Road_LoadMap1(&roadNets[2]);
     RoadNetwork* road = &roadNets[0];
-    int level = 1; // which map we are on: 1 = map1 (map0 disabled while being reworked)
+    int level = 0; // which map we are on: 0 = map2 (first), 1 = map0, 2 = map1
 
     Enemy enemies[MAX_ENEMIES] = {0};
 
@@ -252,7 +288,7 @@ int main()
     char  nameInput[RECORD_NAME_MAX + 1] = {0};
     int   nameLen = 0;
 
-    // The world record tracker (a separate file on purpose, so it survives NEW
+    // The world-record tracker (a separate file on purpose, so it survives NEW
     // GAME resets and is only ever added to by finishing the CAR run).
     RecordEntry records[MAX_RECORDS];
     int recordCount = Records_Load(records, MAX_RECORDS);
@@ -268,7 +304,7 @@ int main()
         ownedMask      = saved.ownedMask;
         savedVehicleId = saved.savedVehicleId;
         completedMask  = saved.completedMask;
-        level          = 1; // map0 is disabled; CONTINUE always resumes on map1
+        level          = saved.level; // resume whichever map was being played
     }
 
     // ---- Screen flow ----
@@ -388,17 +424,18 @@ int main()
                 // Put the new vehicle in the player's hands and move to the
                 // next map. Its price comes out of the money, which is what
                 // made the unlock possible in the first place. Unlocking the
-                // CAR (id 4) is the end of the run, so the player types a name
-                // for the record before driving on.
+                // CAR (id 4) is the end of the run: it plays the ending
+                // cutscene once, then the player types a name for the record.
                 SetVehicle(&player, car, unlockedVehicle);
                 money -= GetVehiclePreset(unlockedVehicle).cost; // pay for the new ride
-                level = 1; // map0 is disabled, so an unlock re-runs map1 with the new vehicle
-                road = &roadNets[level]; // the next map has its own roads
                 if(unlockedVehicle == 4){
-                    nameLen = 0;
-                    state = STATE_NAMEINPUT;
+                    endingFrame = 0;
+                    endingTimer = 0.0f;
+                    state = STATE_ENDING;
                 }
                 else{
+                    level = (level + 1) % 3; // next map, with the new vehicle
+                    road = &roadNets[level]; // the next map has its own roads
                     BeginLevel(&player, &lives, &score, &hurtTimer,
                                enemies, passengers, MAX_PASSENGERS, &intro,
                                &moneyMultiplier, car, level, &passengerTimer,
@@ -414,7 +451,9 @@ int main()
             ClearBackground(BLACK);
             const char* vehName = Title_VehicleName(unlockedVehicle);
             const char* heading = TextFormat("%s UNLOCKED!", vehName);
-            const char* sub = "proceeding to next level";
+            const char* sub = (unlockedVehicle == 4)
+                ? "run complete - cutscene next"
+                : "proceeding to next level";
             const char* count = TextFormat("in %.0f...", unlockTimer);
             int w = GetScreenWidth();
             DrawText(heading, (w - MeasureText(heading, 60)) / 2, GetScreenHeight()/2 - 80, 60, YELLOW);
@@ -425,9 +464,45 @@ int main()
             continue;
         }
 
-        // ---------------- WORLD RECORD NAME INPUT ----------------
-        // Appears right after the CAR unlocks. Type a name and press ENTER to
-        // save it (with the total run time) to the world record tracker.
+        // ---------------- ENDING CUTSCENE ----------------
+        // Plays ending.gif exactly once, straight after the CAR unlock alert.
+        // ESC skips it. When it finishes the player goes to the name form.
+        if(state == STATE_ENDING){
+            endingTimer += GetFrameTime();
+            while(endingTimer >= ENDING_FRAME_TIME && endingFrame < ENDING_FRAMES - 1){
+                endingTimer -= ENDING_FRAME_TIME;
+                endingFrame++;
+            }
+
+            bool finished = (endingFrame == ENDING_FRAMES - 1 && endingTimer >= ENDING_FRAME_TIME);
+            if(IsKeyPressed(KEY_ESCAPE)) finished = true;
+            if(finished){
+                nameLen = 0;
+                state = STATE_NAMEINPUT;
+                continue;
+            }
+
+            BeginDrawing();
+            ClearBackground(BLACK);
+            float screenW = (float)GetScreenWidth();
+            float screenH = (float)GetScreenHeight();
+            float scale = fminf(screenW / endingFrames[0].width,
+                                screenH / endingFrames[0].height);
+            float dw = endingFrames[0].width * scale;
+            float dh = endingFrames[0].height * scale;
+            DrawTexturePro(endingFrames[endingFrame],
+                           (Rectangle){ 0, 0, endingFrames[0].width, endingFrames[0].height },
+                           (Rectangle){ (screenW - dw)/2.0f, (screenH - dh)/2.0f, dw, dh },
+                           (Vector2){ 0, 0 }, 0.0f, WHITE);
+            DrawText("ESC = skip", 20, GetScreenHeight() - 30, 18, DARKGRAY);
+            EndDrawing();
+            continue;
+        }
+
+        // ---------------- HIGH SCORE NAME INPUT ----------------
+
+        // Appears right after the ending cutscene. Type a name and press
+        // ENTER to save it (with the total run time) to the high-score list.
         if(state == STATE_NAMEINPUT){
             // Letters, digits and backspace.
             for(int k = KEY_A; k <= KEY_Z; k++){
@@ -449,24 +524,21 @@ int main()
             if(IsKeyPressed(KEY_ENTER)){
                 if(nameLen > 0)
                     Records_Add(records, &recordCount, MAX_RECORDS, nameInput, (int)overallTime);
-                // Drive on with the CAR (no more vehicles to unlock - free play).
-                BeginLevel(&player, &lives, &score, &hurtTimer,
-                           enemies, passengers, MAX_PASSENGERS, &intro,
-                               &moneyMultiplier, car, level, &passengerTimer,
-                               &worldwidth, &worldheight, &paused);
-                state = STATE_PLAYING;
+                // The run is complete: save the finished progress and go back
+                // to the menu. The overall clock has stopped (it only ticks
+                // while driving), so the recorded time is the full run.
+                SaveProgress(money, player.veh.id, ownedMask, completedMask, 0, level);
+                state = STATE_TITLE;
+                continue;
             }
             // Solid black background with just the name form, same as the
             // unlock alert.
             BeginDrawing();
             ClearBackground(BLACK);
             if(IsKeyPressed(KEY_ESCAPE)){
-                // Skip recording and just drive on.
-                BeginLevel(&player, &lives, &score, &hurtTimer,
-                           enemies, passengers, MAX_PASSENGERS, &intro,
-                               &moneyMultiplier, car, level, &passengerTimer,
-                               &worldwidth, &worldheight, &paused);
-                state = STATE_PLAYING;
+                // Skip recording; the run still ends here.
+                SaveProgress(money, player.veh.id, ownedMask, completedMask, 0, level);
+                state = STATE_TITLE;
                 continue;
             }
             const char* unlockedTitle = "CAR UNLOCKED!";
@@ -580,8 +652,8 @@ int main()
     SaveProgress(money, player.veh.id, ownedMask, completedMask, 1, level);
 
     for(int i=0;i<4;i++) UnloadTexture(car[i]);
-    UnloadTexture(map[0]);
-    UnloadTexture(map[1]);
+    for(int i=0;i<3;i++) UnloadTexture(map[i]);
+    for(int i=0;i<ENDING_FRAMES;i++) UnloadTexture(endingFrames[i]);
     UnloadRenderTexture(target);
     CloseWindow();
 

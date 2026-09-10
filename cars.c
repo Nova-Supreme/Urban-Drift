@@ -37,7 +37,7 @@ vehicle GetVehiclePreset(int choice){
 
     case 4: //personal car (goal)
         temp.id=4;
-        temp.cost=10000;
+        temp.cost=5000;
         temp.maxspeed=4.0f;
         temp.acceleration=0.02f;
         temp.brakeforce=0.05f;
