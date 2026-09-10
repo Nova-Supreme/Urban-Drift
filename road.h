@@ -23,7 +23,7 @@ typedef struct {
 
 // The biggest the road is allowed to get. If you add more pieces than this,
 // raise the number.
-#define MAX_ROAD_SEGMENTS 16
+#define MAX_ROAD_SEGMENTS 30
 
 typedef struct {
     RoadSegment segs[MAX_ROAD_SEGMENTS];
@@ -33,8 +33,11 @@ typedef struct {
 // Fills `network` with the road layout for map0. Call this once at startup.
 void Road_Load(RoadNetwork* network);
 
-// Fills `network` with the road layout for map1 (the second level).
+// Fills `network` with the road layout for map1 (the hand-drawn town map).
 void Road_LoadMap1(RoadNetwork* network);
+
+// Fills `network` with the road layout for map2 (the very first map).
+void Road_LoadMap2(RoadNetwork* network);
 
 // Returns true if `point` sits on top of any road piece (i.e. is on the road).
 bool Road_Contains(RoadNetwork* network, Vector2 point);

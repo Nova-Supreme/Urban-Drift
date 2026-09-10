@@ -80,10 +80,10 @@ void Title_DrawMenu(TitleScreen* title, int width, int height, const RecordEntry
         DrawCenteredText(labels[i], y, selected ? 35 : 30, color, width);
     }
 
-    // The world record tracker: each entry is a name and the time it took to
+    // The high-score board: each entry is a name and the time it took to
     // unlock the CAR. Drawn small below the menu.
     if(recordCount > 0){
-        DrawCenteredText("WORLD RECORDS", height/2 + 130, 20, GOLD, width);
+        DrawCenteredText("HIGH SCORES", height/2 + 130, 20, GOLD, width);
         for(int i = 0; i < recordCount && i < 5; i++){
             const char* line = TextFormat("%s  -  %d:%02d",
                                           records[i].name,

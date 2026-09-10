@@ -52,7 +52,7 @@ bool Save_Load(SaveData* data)
     if(mask < 1)   mask = 1; // the starter car is always owned
     if(active != 0 && active != 1) active = 1;
     if(completed < 0) completed = 0; // nobody has finished any map yet
-    if(level < 0 || level > 1) level = 0;
+    if(level < 0 || level > 2) level = 0;
 
     data->money = money;
     data->savedVehicleId = vehicle;
