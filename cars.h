@@ -14,7 +14,8 @@ typedef struct vehicle{
     float brakeforce;
 } vehicle;
 
-vehicle GetVehiclePreset(int choice); //function prototype
+vehicle GetVehiclePreset(int choice); //function 
+//creates a local vehicle temp; then switch(choice) fills it per vehicle id.
 
 typedef struct passenger{
     Vector2 position;
@@ -22,7 +23,7 @@ typedef struct passenger{
     bool isspawned;
     bool ispickedup;
     float interactionradius;
-} Passenger;
+} Passenger; //shouldve been in passenger.h but its fine
 
 
 #endif

@@ -89,6 +89,5 @@ void Player_UpdatePosition(Player* player, RoadNetwork* road)
     {
         player->pos.y += moveY;
     }
-    // ponytail: on a very sharp corner the car can stop a little earlier than
-    // a perfect collision would; the axis-split check is good enough for now.
+
 }

@@ -163,7 +163,7 @@ bool Road_Contains(RoadNetwork* network, Vector2 point)
             // The point is within the radius, but a semicircle only covers part
             // of the circle, so it must ALSO sit between the two angles.
             // Work out where the point is, as an angle from the centre.
-            float pointAngle = atan2f(diff.y, diff.x) * RAD2DEG; // -180..180
+            float pointAngle = atan2f(diff.y, diff.x) * RAD2DEG; // -180..180 angle from center to my point
             if(pointAngle < 0.0f) pointAngle += 360.0f;          // make 0..360
 
             // Sweep = how far the arc turns (0 to 360 degrees).
