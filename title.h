@@ -4,7 +4,6 @@
 #include <raylib.h>
 #include <stdbool.h>
 #include "cars.h"
-#include "records.h"
 
 // The choices shown on the title screen. TITLE_CONTINUE only appears when a
 // saved run is still in progress (the last game was quit mid-run, not lost).
@@ -39,8 +38,7 @@ void Title_Refresh(TitleScreen* title, bool hasContinue);
 // returned choice already skips CONTINUE when there is no save to continue.
 int Title_HandleMenu(TitleScreen* title);
 
-// Draws the main menu, plus the saved world records underneath so the player
-// can see their best runs.
-void Title_DrawMenu(TitleScreen* title, int width, int height, const RecordEntry* records, int recordCount);
+// Draws the main menu on screen.
+void Title_DrawMenu(TitleScreen* title, int width, int height);
 
 #endif

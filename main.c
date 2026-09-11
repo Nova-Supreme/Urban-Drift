@@ -10,7 +10,6 @@
 #include "enemy.h"
 #include "title.h"
 #include "save.h"
-#include "records.h"
 
 // Which screen the game is showing right now.
 typedef enum {
@@ -20,7 +19,6 @@ typedef enum {
     STATE_OVER,        // the "game over" screen
     STATE_UNLOCK,      // "(vehicle) unlocked!" alert + 5 second countdown
     STATE_ENDING,      // the ending cutscene (ending.gif, played once, after the CAR)
-    STATE_NAMEINPUT   // typing a name for the high score (after the CAR)
 } GameState;
 
 // The map image is stretched onto a rectangle of this size. map1 is made
@@ -212,8 +210,9 @@ int main()
     map[2]=LoadTexture("assets/map1.png");
 
     // ---- The ending cutscene (ending.gif, split into one PNG per frame) ----
-    // Plays exactly once, right after the CAR unlock alert, then the player
-    // types their name. The frames live in assets/ending/ as f0000.png...
+    // Plays exactly once, right after the CAR unlock alert, then the run is
+    // over and the game returns to the title screen. The frames live in
+    // assets/ending/ as f0000.png...
     Texture2D endingFrames[ENDING_FRAMES];
     char framePath[64];
     for(int i = 0; i < ENDING_FRAMES; i++){
@@ -273,8 +272,7 @@ int main()
     float moneyMultiplier = 1.0f;
 
     // The overall run clock. It keeps counting across ALL the levels and
-    // retries of a run, and only stops when the CAR is unlocked - that total
-    // time goes into the world record tracker with the name the player picks.
+    // retries of a run, and only stops when the CAR is unlocked.
     float overallTime = 0.0f;
 
     // ---- The unlock alert ----
@@ -283,15 +281,6 @@ int main()
     // level with the new vehicle. These hold the alert's state.
     int   unlockedVehicle = 0;  // the vehicle that was just unlocked (2..4)
     float unlockTimer = 5.0f;   // how long the alert stays up
-
-    // ---- The world record name input ---- 
-    char  nameInput[RECORD_NAME_MAX + 1] = {0};
-    int   nameLen = 0;
-
-    // The world-record tracker (a separate file on purpose, so it survives NEW
-    // GAME resets and is only ever added to by finishing the CAR run).
-    RecordEntry records[MAX_RECORDS];
-    int recordCount = Records_Load(records, MAX_RECORDS);
 
     // Timer before the next passenger appears (they keep coming one after
     // another while you drive).
@@ -383,7 +372,7 @@ int main()
 
             BeginDrawing();
             ClearBackground(BLACK);
-            Title_DrawMenu(&title, GetScreenWidth(), GetScreenHeight(), records, recordCount);
+            Title_DrawMenu(&title, GetScreenWidth(), GetScreenHeight());
             EndDrawing();
             continue;
         }
@@ -415,7 +404,6 @@ int main()
                 // save keeps the current car and level. CONTINUE resumes where
                 // the alert left off, and it triggers again on the next frame.
                 SaveProgress(money, player.veh.id, ownedMask, completedMask, 1, level);
-                nameLen = 0;
                 state = STATE_TITLE;
             }
 
@@ -425,7 +413,7 @@ int main()
                 // next map. Its price comes out of the money, which is what
                 // made the unlock possible in the first place. Unlocking the
                 // CAR (id 4) is the end of the run: it plays the ending
-                // cutscene once, then the player types a name for the record.
+                // cutscene once, then the run finishes.
                 SetVehicle(&player, car, unlockedVehicle);
                 money -= GetVehiclePreset(unlockedVehicle).cost; // pay for the new ride
                 if(unlockedVehicle == 4){
@@ -466,7 +454,8 @@ int main()
 
         // ---------------- ENDING CUTSCENE ----------------
         // Plays ending.gif exactly once, straight after the CAR unlock alert.
-        // ESC skips it. When it finishes the player goes to the name form.
+        // ESC skips it. When it finishes the run is complete and the game
+        // returns to the title screen.
         if(state == STATE_ENDING){
             endingTimer += GetFrameTime();
             while(endingTimer >= ENDING_FRAME_TIME && endingFrame < ENDING_FRAMES - 1){
@@ -477,8 +466,11 @@ int main()
             bool finished = (endingFrame == ENDING_FRAMES - 1 && endingTimer >= ENDING_FRAME_TIME);
             if(IsKeyPressed(KEY_ESCAPE)) finished = true;
             if(finished){
-                nameLen = 0;
-                state = STATE_NAMEINPUT;
+                // The run is complete: save the finished progress and go back
+                // to the menu. The overall clock has stopped (it only ticks
+                // while driving).
+                SaveProgress(money, player.veh.id, ownedMask, completedMask, 0, level);
+                state = STATE_TITLE;
                 continue;
             }
 
@@ -499,59 +491,6 @@ int main()
             continue;
         }
 
-        // ---------------- HIGH SCORE NAME INPUT ----------------
-
-        // Appears right after the ending cutscene. Type a name and press
-        // ENTER to save it (with the total run time) to the high-score list.
-        if(state == STATE_NAMEINPUT){
-            // Letters, digits and backspace.
-            for(int k = KEY_A; k <= KEY_Z; k++){
-                if(IsKeyPressed(k) && nameLen < RECORD_NAME_MAX){
-                    nameInput[nameLen++] = (char)('A' + (k - KEY_A));
-                    nameInput[nameLen] = '\0';
-                }
-            }
-            for(int k = KEY_ZERO; k <= KEY_NINE; k++){
-                if(IsKeyPressed(k) && nameLen < RECORD_NAME_MAX){
-                    nameInput[nameLen++] = (char)('0' + (k - KEY_ZERO));
-                    nameInput[nameLen] = '\0';
-                }
-            }
-            if(IsKeyPressed(KEY_BACKSPACE) && nameLen > 0){
-                nameInput[--nameLen] = '\0';
-            }
-
-            if(IsKeyPressed(KEY_ENTER)){
-                if(nameLen > 0)
-                    Records_Add(records, &recordCount, MAX_RECORDS, nameInput, (int)overallTime);
-                // The run is complete: save the finished progress and go back
-                // to the menu. The overall clock has stopped (it only ticks
-                // while driving), so the recorded time is the full run.
-                SaveProgress(money, player.veh.id, ownedMask, completedMask, 0, level);
-                state = STATE_TITLE;
-                continue;
-            }
-            // Solid black background with just the name form, same as the
-            // unlock alert.
-            BeginDrawing();
-            ClearBackground(BLACK);
-            if(IsKeyPressed(KEY_ESCAPE)){
-                // Skip recording; the run still ends here.
-                SaveProgress(money, player.veh.id, ownedMask, completedMask, 0, level);
-                state = STATE_TITLE;
-                continue;
-            }
-            const char* unlockedTitle = "CAR UNLOCKED!";
-            const char* prompt = "Enter your name:";
-            int w = GetScreenWidth();
-            DrawText(unlockedTitle, (w - MeasureText(unlockedTitle, 50)) / 2, GetScreenHeight()/2 - 110, 50, GOLD);
-            DrawText(prompt, (w - MeasureText(prompt, 25)) / 2, GetScreenHeight()/2 - 30, 25, WHITE);
-            DrawText(nameInput, (w - MeasureText(nameInput, 25)) / 2, GetScreenHeight()/2 + 10, 25, YELLOW);
-            DrawText("ENTER = save record    |    ESC = skip", (w - MeasureText("ENTER = save record    |    ESC = skip", 18)) / 2, GetScreenHeight()/2 + 70, 18, DARKGRAY);
-            EndDrawing();
-            continue;
-        }
-
         // ---------------- PLAYING SCREEN ----------------
         // ESC toggles the pause overlay; M on the pause screen returns to menu.
         if(IsKeyPressed(KEY_ESCAPE)) paused = !paused;
@@ -565,8 +504,8 @@ int main()
         // While paused, the whole world freezes: no input, no movement, no
         // enemies, no crashing, nothing. Only the pause/quit keys above work.
         if(!paused){
-            // The overall run clock only ticks while actually driving; pauses,
-            // the unlock alert and the name screen don't count against it.
+            // The overall run clock only ticks while actually driving; pauses
+            // and the unlock alert don't count against it.
             overallTime += GetFrameTime();
 
             Player_HandleInput(&player);
@@ -618,7 +557,7 @@ int main()
 
             // When money reaches the NEXT vehicle's price, the level is done:
             // stop and announce the unlock. The CAR (id 4) is the last one, so
-            // the run then ends and the player records their name + time.
+            // the run then ends after the ending cutscene.
             if(player.veh.id < 4 && money >= GetVehiclePreset(player.veh.id + 1).cost){
                 unlockedVehicle = player.veh.id + 1;
                 unlockTimer = 5.0f;

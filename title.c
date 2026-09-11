@@ -56,7 +56,7 @@ int Title_HandleMenu(TitleScreen* title)
     return -1; // nothing confirmed yet
 }
 
-void Title_DrawMenu(TitleScreen* title, int width, int height, const RecordEntry* records, int recordCount)
+void Title_DrawMenu(TitleScreen* title, int width, int height)
 {
     // The labels are drawn in the same order as the menu index. CONTINUE is
     // only listed when a saved run exists.
@@ -78,19 +78,6 @@ void Title_DrawMenu(TitleScreen* title, int width, int height, const RecordEntry
         if(selected) DrawText(">", width/2 - 120, y, 30, color);
 
         DrawCenteredText(labels[i], y, selected ? 35 : 30, color, width);
-    }
-
-    // The high-score board: each entry is a name and the time it took to
-    // unlock the CAR. Drawn small below the menu.
-    if(recordCount > 0){
-        DrawCenteredText("HIGH SCORES", height/2 + 130, 20, GOLD, width);
-        for(int i = 0; i < recordCount && i < 5; i++){
-            const char* line = TextFormat("%s  -  %d:%02d",
-                                          records[i].name,
-                                          records[i].seconds / 60,
-                                          records[i].seconds % 60);
-            DrawCenteredText(line, height/2 + 160 + i*25, 18, LIGHTGRAY, width);
-        }
     }
 
     DrawCenteredText("Use W/S or arrows to move, ENTER to select", height - 40, 16, DARKGRAY, width);
